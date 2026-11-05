@@ -1,0 +1,1875 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GSOC response drill console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#e9ebee; --panel:#ffffff; --panel-2:#f4f5f7;
+  --ink:#15181d; --ink-soft:#5d646d; --ink-faint:#8d949d;
+  --line:#ccd2d8; --line-strong:#9aa3ad;
+  --ok:#1b6f48; --over:#a62d1a; --live:#9a5c00;
+  --ok-bg:#e2f0e8; --live-bg:#f8eedc;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14171b; --panel:#1c2026; --panel-2:#23282f;
+    --ink:#e7eaee; --ink-soft:#97a0aa; --ink-faint:#6d767f;
+    --line:#2f353d; --line-strong:#454d57;
+    --ok:#57cc92; --over:#ff8771; --live:#f2b53c;
+    --ok-bg:#162c22; --live-bg:#2e2616;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="gotham"]{
+  --paper:#0c0f14; --panel:#141922; --panel-2:#1b2230;
+  --ink:#dde3ec; --ink-soft:#8d97a8; --ink-faint:#5f6a7c;
+  --line:#232b38; --line-strong:#384354;
+  --ok:#4fb286; --over:#e4624f; --live:#f2b134;
+  --ok-bg:#132620; --live-bg:#2a2314;
+  --wash:radial-gradient(120% 70% at 50% -12%, #1e2a44 0%, rgba(30,42,68,0) 62%);
+  color-scheme: dark;
+}
+:root[data-theme="metropolis"]{
+  --paper:#e7edf6; --panel:#ffffff; --panel-2:#dce6f3;
+  --ink:#0e1f3d; --ink-soft:#43587a; --ink-faint:#7889a5;
+  --line:#c2d0e4; --line-strong:#8fa2bf;
+  --ok:#15674a; --over:#b02219; --live:#8e6210;
+  --ok-bg:#dcece4; --live-bg:#f4ead3;
+  --wash:radial-gradient(120% 70% at 50% -12%, #ffffff 0%, rgba(255,255,255,0) 58%);
+  color-scheme: light;
+}
+:root[data-theme="dark"]{
+  --paper:#14171b; --panel:#1c2026; --panel-2:#23282f;
+  --ink:#e7eaee; --ink-soft:#97a0aa; --ink-faint:#6d767f;
+  --line:#2f353d; --line-strong:#454d57;
+  --ok:#57cc92; --over:#ff8771; --live:#f2b53c;
+  --ok-bg:#162c22; --live-bg:#2e2616;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+body{margin:0;background-color:var(--paper);background-image:var(--wash,none);
+  background-repeat:no-repeat;background-size:100% 120vh;color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:40;}
+.num{font-family:"Azeret Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;}
+h1,h2,h3{font-weight:600;line-height:1.2;margin:0;letter-spacing:-0.01em}
+p{margin:0 0 .7em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--panel);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:1rem;padding:.6rem clamp(.9rem,3vw,2rem);}
+.bar h1{font-size:1rem;font-weight:600;flex:1;min-width:0}
+.bar h1 span{color:var(--ink-faint);font-weight:400}
+.ghost{background:none;border:1px solid var(--line);border-radius:3px;padding:.35rem .65rem;font-size:.82rem;cursor:pointer;color:var(--ink-soft)}
+.ghost:hover{border-color:var(--line-strong);color:var(--ink)}
+select.ghost{width:auto;flex:none;padding:.35rem 1.6rem .35rem .5rem;background:var(--panel);appearance:none;-webkit-appearance:none;border-radius:3px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 5rem}
+section[hidden],div[hidden],p[hidden]{display:none}
+.lede{color:var(--ink-soft);max-width:64ch;font-size:.95rem}
+
+.setup-head h2{font-size:clamp(1.5rem,4vw,2rem);margin-bottom:.4rem}
+.fields{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:1.4rem 0 2rem}
+label{display:block;font-size:.82rem;color:var(--ink-soft);margin-bottom:.3rem}
+input[type=text],select{width:100%;padding:.55rem .6rem;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;font:inherit}
+input.num{font-family:"Azeret Mono",monospace}
+.hint{font-size:.78rem;color:var(--ink-faint);margin-top:.3rem}
+.scen-head{display:flex;align-items:baseline;gap:.8rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
+.scen-head h3{font-size:1rem}.scen-head .c{color:var(--ink-faint);font-size:.82rem}
+.scen{list-style:none;margin:0;padding:0}
+.scen li{border-bottom:1px solid var(--line)}
+.scen button{width:100%;text-align:left;background:none;border:0;cursor:pointer;display:grid;
+  grid-template-columns:auto 1fr;gap:.2rem 1rem;padding:.95rem .8rem .95rem 1rem;border-left:3px solid transparent}
+.scen button:hover{background:var(--panel-2)}
+.scen button[aria-pressed=true]{background:var(--panel);border-left-color:var(--live)}
+.scen .idx{font-size:.8rem;color:var(--ink-faint);grid-row:span 2;padding-top:.18rem}
+.scen .nm{font-weight:600;font-size:.98rem}
+.scen .dsc{font-size:.87rem;color:var(--ink-soft);max-width:70ch}
+.scen .tier{font-size:.78rem;color:var(--ink-faint);margin-top:.25rem}
+.tier.ls{color:var(--over)}
+.go{margin-top:1.6rem;display:inline-flex;align-items:center;gap:.7rem;background:var(--ink);color:var(--paper);
+  border:0;border-radius:3px;padding:.8rem 1.4rem;font-size:1rem;font-weight:600;cursor:pointer}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.go kbd{font-family:"Azeret Mono",monospace;font-size:.72rem;opacity:.65;border:1px solid currentColor;border-radius:2px;padding:.05rem .3rem}
+
+.clockwrap{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1rem clamp(1rem,3vw,1.8rem) 1.2rem;margin-bottom:1.1rem}
+.clock{font-size:clamp(3rem,12vw,5rem);font-weight:500;line-height:.95;letter-spacing:-0.03em;display:block;color:var(--live)}
+.clockmeta{display:flex;flex-wrap:wrap;gap:.35rem 1.4rem;margin-top:.6rem;font-size:.85rem;color:var(--ink-soft)}
+.clockmeta b{font-weight:600;color:var(--ink)}
+.runcols{display:grid;gap:1.1rem;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:start}
+@media (max-width:900px){.runcols{grid-template-columns:1fr}}
+
+.gates{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.gates li{border-bottom:1px solid var(--line);border-left:3px solid transparent}
+.gates li:last-child{border-bottom:0}
+.grow{display:grid;grid-template-columns:1.7rem 1fr auto;gap:.1rem .85rem;padding:.75rem .9rem;align-items:baseline}
+.grow .n{font-size:.82rem;color:var(--ink-faint)}
+.grow .t{font-weight:600;font-size:.95rem}
+.grow .stamp{text-align:right;font-size:.98rem;color:var(--ink-faint)}
+.grow .delta{display:block;font-size:.74rem;margin-top:.1rem;font-family:"Archivo",sans-serif}
+li.done{border-left-color:var(--line-strong)}
+li.done .stamp{color:var(--ink)}
+li.locked .grow{opacity:.42}
+li.active{border-left-color:var(--live);background:var(--live-bg)}
+.d-ok{color:var(--ok)}.d-over{color:var(--over)}
+.ask{padding:0 .9rem 1.1rem 3.5rem}
+@media (max-width:520px){.ask{padding-left:.9rem}}
+.ask .q{font-size:.95rem;margin:0 0 .55rem;max-width:60ch}
+textarea.resp{width:100%;min-height:5rem;resize:vertical;font:inherit;font-size:.95rem;padding:.6rem .7rem;
+  background:var(--panel);color:var(--ink);border:1px solid var(--line-strong);border-radius:3px}
+.banktitle{font-size:.76rem;color:var(--ink-faint);margin:.7rem 0 .35rem}
+.bank{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.35rem}
+.bank button{background:var(--panel-2);border:1px solid var(--line);border-radius:3px;padding:.28rem .55rem;
+  font-size:.84rem;cursor:pointer;color:var(--ink);text-align:left;line-height:1.3}
+.bank button:hover{border-color:var(--line-strong);background:var(--panel)}
+.bank button.used{opacity:.45}
+.askbtns{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.75rem}
+.submit{background:var(--ink);color:var(--paper);border:0;border-radius:3px;padding:.5rem 1rem;font-weight:600;font-size:.9rem;cursor:pointer}
+.clr{background:none;border:1px solid var(--line);border-radius:3px;padding:.5rem .8rem;font-size:.86rem;cursor:pointer;color:var(--ink-soft)}
+.fb{font-size:.86rem;margin-top:.55rem;min-height:1.2em}
+.fb.bad{color:var(--over)}.fb.part{color:var(--live)}
+.elem{list-style:none;margin:.55rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.3rem .45rem}
+.elem li{font-size:.76rem;border:1px solid var(--line);border-radius:2px;padding:.12rem .4rem;color:var(--ink-faint)}
+.elem li.got{color:var(--ok);border-color:var(--ok);background:var(--ok-bg)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1rem;margin-bottom:1.1rem}
+.panel h3{font-size:.95rem;margin-bottom:.45rem}
+.panelhead{display:flex;gap:.7rem;align-items:flex-start;justify-content:space-between}
+.panelhead h3{flex:1;min-width:0}
+.panelhead .ghost{flex:none;white-space:nowrap}
+.aided{font-size:.8rem;color:var(--live);margin:.5rem 0 0}
+.panel .brief{font-size:.9rem;color:var(--ink-soft)}
+.kv{margin:.8rem 0 0;font-size:.87rem}
+.kv dt{color:var(--ink-faint);font-size:.78rem}
+.kv dd{margin:.1rem 0 .7rem}
+.traps{font-size:.84rem;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:.9rem;padding-top:.7rem}
+.terms{list-style:none;margin:0;padding:0}
+.terms li{border-top:1px solid var(--line);padding:.5rem 0}
+.terms li:first-child{border-top:0;padding-top:.2rem}
+.terms .tm{font-weight:600;font-size:.87rem}
+.terms .md{font-size:.83rem;color:var(--ink-soft);margin:.1rem 0 0}
+.terms .ex{font-size:.8rem;color:var(--ink-faint);font-style:italic;margin:.25rem 0 0}
+.runbtns{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.1rem}
+
+.checks{list-style:none;margin:.3rem 0 0;padding:0}
+.checks li{padding:.4rem 0;border-top:1px solid var(--line)}
+.checks label{display:flex;gap:.55rem;align-items:flex-start;color:var(--ink);font-size:.89rem;margin:0;cursor:pointer}
+.checks input{margin-top:.25rem;accent-color:var(--ok);width:1rem;height:1rem;flex:none}
+.crit{color:var(--over);font-size:.74rem;display:block;margin-top:.1rem}
+.verdict{border:1px solid var(--line);border-left-width:5px;border-radius:4px;background:var(--panel);padding:1.1rem 1.3rem;margin-bottom:1.1rem}
+.verdict h2{font-size:1.5rem}
+.verdict p{margin:.35rem 0 0;color:var(--ink-soft);font-size:.92rem;max-width:66ch}
+.v-pass{border-left-color:var(--ok)}.v-pass h2{color:var(--ok)}
+.v-rem{border-left-color:var(--live)}.v-rem h2{color:var(--live)}
+.v-fail{border-left-color:var(--over)}.v-fail h2{color:var(--over)}
+table{width:100%;border-collapse:collapse;font-size:.9rem;background:var(--panel)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;margin-bottom:1.1rem}
+th,td{text-align:left;padding:.5rem .7rem;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.76rem;color:var(--ink-faint);font-weight:500}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+td.wrap{white-space:normal;max-width:40ch}
+.headline{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));margin-bottom:1.1rem}
+.hl{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:.8rem .9rem}
+.hl .v{font-size:1.65rem;font-weight:500;display:block;line-height:1.1}
+.hl .l{font-size:.78rem;color:var(--ink-soft);display:block;margin-top:.2rem}
+h3.sec{font-size:1rem;margin:1.4rem 0 .5rem}
+.codegrid{display:grid;gap:.35rem .9rem;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin:0;padding:0;list-style:none}
+.codegrid li{display:grid;grid-template-columns:2.3rem 1fr;gap:.5rem;font-size:.85rem;padding:.16rem 0;border-bottom:1px solid var(--line)}
+.codegrid li[hidden]{display:none}
+.codegrid .cn{font-family:"Azeret Mono",monospace;color:var(--ink-faint);font-weight:500}
+.codegrid li.hit .cn{color:var(--live)}
+#codefilter{max-width:22rem;margin:.6rem 0 1rem}
+.codepanel .kset{margin:0 0 .85rem}
+.codepanel .kset:last-child{margin-bottom:0}
+.codepanel .klab{font-size:.78rem;color:var(--ink-faint);margin:0 0 .25rem}
+.codepanel ul{list-style:none;margin:0;padding:0}
+.codepanel li{font-size:.86rem;padding:.22rem 0;display:grid;grid-template-columns:2.6rem 1fr;gap:.5rem;align-items:baseline}
+.codepanel .c{font-family:"Azeret Mono",monospace;font-weight:600}
+.codepanel .primary .c{color:var(--ok)}
+.codepanel .avoid .c{color:var(--over)}
+.codepanel .why{display:block;font-size:.8rem;color:var(--ink-soft);margin-top:.05rem}
+.codepanel .cnote{font-size:.84rem;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:.8rem;padding-top:.65rem}
+.codepanel .nogap{font-size:.86rem;color:var(--over);margin:0 0 .5rem}
+details.gloss{margin-top:2.4rem;border-top:1px solid var(--line-strong);padding-top:1.2rem}
+details.gloss summary{cursor:pointer;font-weight:600;font-size:1rem;list-style:none}
+details.gloss summary::-webkit-details-marker{display:none}
+details.gloss summary::before{content:"\25B8 ";color:var(--ink-faint)}
+details.gloss[open] summary::before{content:"\25BE "}
+.glosslist{list-style:none;margin:1rem 0 0;padding:0;display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.glosslist li{border-left:2px solid var(--line);padding-left:.75rem}
+.glosslist .tm{font-weight:600;font-size:.9rem}
+.glosslist .md{font-size:.85rem;color:var(--ink-soft);margin:.15rem 0 0}
+.glosslist .ex{font-size:.82rem;color:var(--ink-faint);font-style:italic;margin:.3rem 0 0}
+.keepout{margin-top:1.4rem;border:1px solid var(--line);border-left:3px solid var(--over);border-radius:4px;padding:.9rem 1rem;background:var(--panel)}
+.keepout h4{margin:0 0 .4rem;font-size:.9rem;font-weight:600}
+.keepout p{font-size:.86rem;color:var(--ink-soft);margin:0 0 .4rem}
+.keepout p:last-child{margin:0}
+.lockmsg{font-size:.88rem;color:var(--live);margin:.1rem 0 .6rem}
+textarea.resp:disabled,.submit:disabled{opacity:.45;cursor:not-allowed}
+.clock.locked{color:var(--ink-faint)}
+.keycard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line-strong);
+  border-radius:4px;padding:.85rem 1rem;margin-bottom:.7rem}
+.keycard.over{border-left-color:var(--over)}
+.keycard.clean{border-left-color:var(--ok)}
+.keyhead{display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:baseline;margin-bottom:.5rem}
+.keyhead h4{margin:0;font-size:.95rem;font-weight:600}
+.keyhead .badge{font-size:.78rem;color:var(--ink-faint)}
+.keyhead .badge.b-over{color:var(--over)}
+.keyhead .badge.b-ok{color:var(--ok)}
+.keyrow{margin:0 0 .55rem}
+.keyrow:last-child{margin-bottom:0}
+.keyrow .lbl{font-size:.76rem;color:var(--ink-faint);margin:0 0 .15rem}
+.keyrow .val{font-size:.9rem;margin:0}
+.keyrow .val.mine{color:var(--ink-soft)}
+.keyrow .val.model{border-left:2px solid var(--ok);padding-left:.6rem}
+.keyrow ul{list-style:none;margin:.1rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem .4rem}
+.keyrow li{font-size:.76rem;border:1px solid var(--line);border-radius:2px;padding:.1rem .38rem;color:var(--ink-faint)}
+.keyrow li.fl{border-color:var(--over);color:var(--over)}
+.keypick{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:.8rem 0 1rem}
+.keypick select{max-width:22rem}
+.warnbox{border:1px solid var(--over);border-left-width:3px;border-radius:4px;padding:.7rem .9rem;margin:.8rem 0 0;background:var(--panel)}
+.warnbox p{margin:0;font-size:.86rem;color:var(--over)}
+.rm{background:none;border:1px solid var(--line);border-radius:3px;color:var(--ink-faint);
+  font-size:.76rem;line-height:1;padding:.22rem .45rem;cursor:pointer}
+.rm:hover{border-color:var(--over);color:var(--over)}
+.danger{border-color:var(--over);color:var(--over)}
+.danger:hover{background:var(--over);color:var(--panel);border-color:var(--over)}
+.confirmrow{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1.1rem}
+.confirmrow p{margin:0;font-size:.88rem;color:var(--over);max-width:46ch}
+.logsec{margin-top:3rem;border-top:1px solid var(--line-strong);padding-top:1.4rem}
+.logsec h2{font-size:1.15rem;margin-bottom:.3rem}
+.empty{color:var(--ink-faint);font-size:.9rem;padding:1.2rem 0}
+.srcline{font-size:.78rem;color:var(--ink-faint);margin-top:.8rem}
+textarea#csvout{width:100%;min-height:9rem;font-family:"Azeret Mono",monospace;font-size:.74rem;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:.6rem}
+@media print{.bar,.logsec,.runbtns,.ghost,details.gloss{display:none!important}body{background:#fff;color:#000}.verdict,.hl,.tablewrap,table{border-color:#999;background:#fff}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <h1>Response drill console <span>· GSOC operator certification</span></h1>
+  <select id="theme" class="ghost" aria-label="Theme">
+    <option value="standard">Standard</option>
+    <option value="gotham">Gotham</option>
+    <option value="metropolis">Metropolis</option>
+  </select>
+</header>
+
+<main>
+
+<section id="setup">
+  <div class="setup-head">
+    <h2>Set up a timed run</h2>
+    <p class="lede">The operator answers every gate in writing, typing or clicking from the phrase bank. Each gate stays locked until the answer carries the right information in report language, and the clock keeps running while they fix it. Correct answers come from the camera observation terminology reference, so the drill trains the words that survive cross-examination rather than whatever comes out under pressure.</p>
+  </div>
+
+  <div class="fields">
+    <div><label for="op">Operator</label><input type="text" id="op" placeholder="Name or badge number" autocomplete="off"></div>
+    <div><label for="site">Site</label><input type="text" id="site" placeholder="e.g. HD 0412 Garland" autocomplete="off"></div>
+    <div><label for="clip">Clip reference</label><input type="text" id="clip" placeholder="LVT export ID" autocomplete="off"></div>
+    <div>
+      <label for="onset">Event visible at</label>
+      <input type="text" id="onset" class="num" value="0:47" inputmode="numeric">
+      <div class="hint">Where in the clip the incident first becomes observable. Gate 1 is scored from here.</div>
+    </div>
+    <div>
+      <label for="level">Level</label>
+      <select id="level">
+        <option value="auto">Auto, from run history</option>
+        <option value="novice">Novice</option>
+        <option value="beginner">Beginner</option>
+        <option value="expert">Expert</option>
+        <option value="elite">Elite</option>
+      </select>
+      <div class="hint" id="levelhint"></div>
+    </div>
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode">
+        <option value="coached">Coached — phrase bank and terms visible</option>
+        <option value="cert">Certification — operator writes unaided</option>
+      </select>
+      <div class="hint">Coached is for teaching the vocabulary. Certification hides both. The mode is recorded on the run so the two never get averaged together.</div>
+    </div>
+    <div>
+      <label for="allow">Typing allowance per gate</label>
+      <input type="text" id="allow" class="num" value="12" inputmode="numeric">
+      <div class="hint">Seconds added to each benchmark for keyboard entry. Set to 0 for a spoken drill with the proctor typing.</div>
+    </div>
+  </div>
+
+  <div class="scen-head"><h3>Scenario</h3><span class="c" id="scount"></span></div>
+  <ul class="scen" id="scenlist"></ul>
+  <button class="go" id="start" type="button" disabled>Start the clock <kbd>space</kbd></button>
+
+  <details class="gloss" id="keyref">
+    <summary>Answer key, all gates</summary>
+    <div class="warnbox"><p>For proctors. Every model answer for every gate is below. Do not open this at a console an operator is about to be tested at.</p></div>
+    <div class="keypick">
+      <label for="keyscen" style="margin:0">Scenario</label>
+      <select id="keyscen"></select>
+    </div>
+    <div id="keyrefbody"></div>
+  </details>
+
+  <details class="gloss">
+    <summary>Comment codes</summary>
+    <p class="lede" style="margin-top:.8rem">The operator comment codes as issued. Gaps in the numbering match the source sheet. A code is a field in the event log, so selecting 46 Burglary or 50 Suspicious Person is correct even though those exact words have no place in a report narrative. Pick the code, write the conduct.</p>
+    <input type="text" id="codefilter" placeholder="Filter by number or words" autocomplete="off">
+    <ul class="codegrid" id="codegrid"></ul>
+    <p class="hint" style="margin-top:.9rem" id="codecount"></p>
+  </details>
+
+  <details class="gloss">
+    <summary>Camera observation terminology</summary>
+    <p class="lede" style="margin-top:.8rem">Twenty terms for video narratives, incident reports and CCTV review notes. The rule behind all of them: describe what the camera showed, never what you believe the subject intended.</p>
+    <ul class="glosslist" id="glosslist"></ul>
+    <div class="keepout">
+      <h4>Words to keep out of a report</h4>
+      <p><b>Intent and mental state.</b> Tried to, intended to, attempted to steal, was going to, decided to.</p>
+      <p><b>Character and conclusion.</b> Suspicious, nervous, shady, casing the store, loitering with intent, obviously, clearly.</p>
+      <p><b>Legal conclusions.</b> Stole, shoplifted, trespassed, assaulted. State the conduct and let the court name the crime.</p>
+    </div>
+    <p class="hint" style="margin-top:1rem">Reference language for report writing, not legal advice. Admissibility standards vary by jurisdiction and by what local prosecutors want to see. Run it past counsel before it goes into an SOP.</p>
+  </details>
+</section>
+
+<section id="run" hidden>
+  <div class="clockwrap">
+    <span class="clock num" id="clock">0:00.0</span>
+    <div class="clockmeta">
+      <span id="m-scen"></span>
+      <span>Operator <b id="m-op"></b></span>
+      <span>Level <b id="m-level"></b></span>
+      <span>Gate <b id="m-gate"></b></span>
+      <span>Attempts on this gate <b id="m-att">0</b></span>
+    </div>
+  </div>
+  <div class="runcols">
+    <ul class="gates" id="gates"></ul>
+    <div>
+      <aside class="panel">
+        <div class="panelhead">
+          <h3 id="a-title"></h3>
+          <button class="ghost" id="a-toggle" type="button">Show answers</button>
+        </div>
+        <p class="brief" id="a-brief"></p>
+        <p class="aided" id="a-aided" hidden>Answers were opened during this run. It is on the record and it blocks a Certified result.</p>
+        <div id="a-answers">
+          <dl class="kv">
+            <dt>Correct classification</dt><dd id="a-tier"></dd>
+            <dt>Correct first call</dt><dd id="a-call"></dd>
+          </dl>
+          <p class="traps" id="a-traps"></p>
+        </div>
+      </aside>
+      <aside class="panel codepanel" id="codepanel" hidden>
+        <h3>Comment codes for this scenario</h3>
+        <div id="codebody"></div>
+      </aside>
+      <aside class="panel" id="termpanel" hidden>
+        <h3>Terms this gate expects</h3>
+        <ul class="terms" id="termlist"></ul>
+      </aside>
+    </div>
+  </div>
+  <div class="runbtns">
+    <button class="ghost" id="abort" type="button">Abandon run</button>
+    <button class="go" id="finish" type="button" hidden>Score this run</button>
+  </div>
+</section>
+
+<section id="score" hidden>
+  <div class="verdict" id="verdict"><h2 id="v-title"></h2><p id="v-why"></p></div>
+  <div class="headline">
+    <div class="hl"><span class="v num" id="h-resp"></span><span class="l">Event to information delivered</span></div>
+    <div class="hl"><span class="v num" id="h-total"></span><span class="l">Event to report filed</span></div>
+    <div class="hl"><span class="v num" id="h-gates"></span><span class="l" id="h-gates-l">Gates inside benchmark</span></div>
+    <div class="hl"><span class="v num" id="h-att"></span><span class="l">Rejected attempts</span></div>
+  </div>
+
+  <h3 class="sec">Gate timing</h3>
+  <div class="tablewrap"><table id="gtable">
+    <thead><tr><th>Gate</th><th class="r">Stamped</th><th class="r">Elapsed</th><th class="r">Benchmark</th><th class="r">Attempts</th><th>Result</th></tr></thead>
+    <tbody></tbody></table></div>
+
+  <h3 class="sec">Flagged language</h3>
+  <p class="lede" id="flagnote"></p>
+  <div class="tablewrap" id="flagwrap"><table id="ftable">
+    <thead><tr><th>Gate</th><th>What was flagged</th><th>Matched</th><th>Weight</th><th>Dismiss</th></tr></thead>
+    <tbody></tbody></table></div>
+
+  <h3 class="sec">Observed by the proctor</h3>
+  <ul class="checks" id="obschecks"></ul>
+
+  <h3 class="sec">Answer key</h3>
+  <p class="lede" id="keynote"></p>
+  <div id="keylist"></div>
+
+  <div class="runbtns">
+    <button class="go" id="savebtn" type="button">Save to the run log</button>
+    <button class="ghost" id="printbtn" type="button">Print this scorecard</button>
+    <button class="ghost" id="again" type="button">New run</button>
+  </div>
+</section>
+
+<section class="logsec" id="logsec">
+  <h2>Run log</h2>
+  <p class="lede">Every saved run feeds the handling-time distribution. That is the number the video monitoring business case needs, measured instead of assumed.</p>
+  <div class="headline" id="agg" hidden>
+    <div class="hl"><span class="v num" id="g-n"></span><span class="l">Runs logged</span></div>
+    <div class="hl"><span class="v num" id="g-med"></span><span class="l">Median, trained operators</span></div>
+    <div class="hl"><span class="v num" id="g-p90"></span><span class="l">90th percentile, trained</span></div>
+    <div class="hl"><span class="v num" id="g-pass"></span><span class="l">Certified on first attempt</span></div>
+  </div>
+  <div class="tablewrap" id="logwrap" hidden><table id="ltable">
+    <thead><tr><th>Date</th><th>Operator</th><th>Level</th><th>Scenario</th><th>Mode</th><th class="r">Response</th><th class="r">Total</th><th class="r">Rejected</th><th>Result</th><th></th></tr></thead>
+    <tbody></tbody></table></div>
+  <p class="empty" id="logempty">No runs saved yet. Score a run and it will land here.</p>
+  <div class="runbtns">
+    <button class="ghost" id="csv" type="button">Export CSV</button>
+    <button class="ghost danger" id="clearlog" type="button" hidden>Clear the run log</button>
+  </div>
+  <div class="confirmrow" id="clearconfirm" hidden>
+    <p id="clearmsg"></p>
+    <button class="ghost danger" id="clearyes" type="button">Delete them</button>
+    <button class="ghost" id="clearno" type="button">Keep them</button>
+  </div>
+  <textarea id="csvout" hidden readonly></textarea>
+  <p class="srcline" id="srcline"></p>
+</section>
+
+</main>
+
+<script>
+"use strict";
+
+/* ================= terminology ================= */
+const GLOSS = {
+observed:["Observed","Something you personally watched happen in real time, live on the monitor. First-hand testimony and the strongest footing you have.","I observed the subject remove a boxed item from the upper shelving in aisle 12."],
+depicts:["The recording depicts","What the footage shows when you were not watching live and reviewed it after. Keep it separate from observed, because mixing the two invites impeachment.","Camera 14 depicts the subject entering the vestibule at 14:32:17 system time."],
+continuous:["Continuous observation","An unbroken visual on the subject from selection through egress, with no gap where the subject left your view.","Observation was continuous from 14:32:17 through 14:36:55."],
+lossvisual:["Loss of visual contact","The honest admission that your view broke, including exactly when and for how long. Disclosing the gap costs less than having opposing counsel find it.","Visual contact was lost for approximately four seconds as the subject passed behind the end cap display."],
+subject:["Subject","A neutral label for the person on camera, used instead of suspect or perp until there is an actual basis for a stronger term.","Subject 1, an adult male, approximately 5'10\", wearing a gray hooded sweatshirt."],
+approximately:["Approximately","The hedge that protects any estimated number: height, weight, age, distance, elapsed time. If you did not measure it, say approximately.","The subject was approximately six feet from the point of sale lane."],
+selection:["Selection","The moment the subject takes possession of merchandise from a display, shelf, rack or fixture. The first required element in most theft cases.","At 14:34:02 the subject selected two boxed power tools from the upper shelf."],
+concealment:["Concealment","Placing merchandise somewhere hidden from plain view. Describe where it went, not what the subject meant by it.","The subject placed both items inside the front pocket of the sweatshirt."],
+retained:["Retained possession","The subject kept control of the merchandise through departure, with no abandonment or return to the shelf.","The subject retained possession of the concealed items through the entire route to the north exit."],
+pos:["Passed all points of sale without tendering payment","The factual way to describe what most people would call stealing. It states the conduct and leaves the legal conclusion to the court.","The subject passed point of sale lanes 1 through 4 without tendering payment."],
+egress:["Egress","The act of leaving, and the specific route used. Name the door rather than saying ran out or fled, both of which imply a state of mind you cannot see.","The subject exited through the north vestibule at 14:36:55."],
+consistent:["Consistent with","A comparison that stops short of a positive identification. Use it when something matches a description but you cannot say it is the same one.","The subject wore a jacket consistent with the description provided by the complainant."],
+appears:["Appears to be","An honest qualifier for anything the image suggests but does not prove, such as a partly obscured object or a distant face.","The item in the subject's right hand appears to be a cellular phone."],
+basis:["Basis of recognition","The reason you can put a name to a face, stated in the same breath as the identification. An ID with no stated basis is an ID a defense attorney gets struck.","I recognized the individual as James Carter based on a prior interaction on 03 April 2026 during which he provided a state identification card."],
+obscured:["Obscured from view","Plain language for anything blocked, blurred, out of frame or washed out. Say so directly rather than guessing at what was behind the obstruction.","The subject's hands were obscured from view by the display rack between 14:33:10 and 14:33:19."],
+systime:["System time and timestamp offset","The clock the recorder stamped on the footage, plus how far off it runs from actual time. Unverified timestamps are one of the easiest things to attack.","System time 14:32:17, verified as running approximately 2 minutes 10 seconds ahead of actual time."],
+native:["Native format export","Footage pulled in the recorder's original file format, unconverted and unedited, with the original left in place on the system.","Footage was exported in native format to removable media; the original file remains on the recorder."],
+chain:["Chain of custody","The documented trail of who handled the evidence, when, and what they did with it, from export to courtroom.","Exported by M. McLean on 15 October 2026 at 16:40, hash value recorded, media sealed and logged into evidence locker 3."],
+silent:["Silent witness theory","The route to admitting footage when no person watched the events live. You authenticate the system rather than the scene.","No employee witnessed the incident live; the recording is offered through the silent witness theory supported by system and access records."],
+hold:["Preservation hold","A formal stop on routine deletion once you have notice of a claim or investigation, so footage is not overwritten on the normal retention cycle.","A preservation hold was placed on all Camera 14 footage for 20 October 2026 upon receipt of the claim notice."]
+};
+
+/* Narrative gates, where the full report-language standard applies. */
+const STRICT = ["detect","relay","report"];
+
+const BANNED = [
+{cat:"intent",label:"Intent language — states what the subject meant to do, which no camera shows",
+ terms:["tried to steal","tried to take","trying to steal","trying to take","tried to break","trying to break","intended to","intent to steal","attempted to steal","attempted theft","was going to","decided to steal","meant to","wanted to steal","planning to steal","he tried","she tried","they tried","subject tried","going to steal"]},
+{cat:"character",label:"Character conclusion — a judgment about the person, not an observation",
+ terms:["suspicious","nervous","shady","casing","loitering with intent","sketchy","up to something","acting strange","acting weird","looked like trouble","snuck","sneaking","snuck in"]},
+{cat:"legal",label:"Legal conclusion — names the crime instead of the conduct",
+ terms:["stole","stolen","steal","shoplift","shoplifted","shoplifting","shoplifter","trespassed","trespassing","assaulted","robbed","robbery","burglarized","broke into","breaking into","break into","committed a"]},
+{cat:"soft",label:"Overstated certainty — the image either shows it or it does not",soft:true,
+ terms:["obviously","clearly","definitely","without a doubt","for sure","100%"]}
+];
+
+/* ================= comment codes ================= */
+/* Operator comment codes, as issued. Gaps in the numbering match the source
+   sheet. A code is a field in the event log, not narrative prose: several of
+   them read as legal conclusions ("Burglary", "Theft in Progress") or carry a
+   word the report standard keeps out ("Suspicious Person"). Selecting the code
+   is correct. Writing its words into the narrative is not. */
+const CODES = {
+"01":"Monitoring Location","02":"Service Ticket on File","03":"Client Called",
+"04":"Employee Error","05":"Called Location-Busy","06":"Voice Down",
+"07":"Refusing to Leave","08":"Delivery on Site","09":"Power Failure",
+"10":"Help Desk Testing Site","11":"Client States All Okay at Site",
+"12":"Disregard Per Special Instructions","13":"Authorities in Route",
+"14":"Testing Devices","15":"Service Issue","16":"Test Signals Received",
+"17":"Fire","18":"Requesting to Intervene","19":"Building Checked Secured",
+"20":"Unable to Conduct Tour","21":"Video Does Not Dial Up","22":"All Appears Normal",
+"23":"Called Location","24":"Faxed Test Results to Customer","25":"Unable to Arm",
+"26":"Unable to Disarm","27":"Requested to Monitor","28":"Remotely Armed",
+"29":"Installer / Service on Site","30":"Authorities Cancelled","31":"Assault",
+"32":"Threat","33":"Left After Voice Down","35":"Installer/Service Complete",
+"36":"Beer Run","37":"Disturbance / Dispute","38":"Intoxicated Persons",
+"39":"Robbery","40":"Theft","41":"Shoplifting","42":"Panhandler",
+"44":"Client Question","45":"Vandalism","46":"Burglary",
+"47":"On Site Guard Dispatched","48":"System Test","49":"Suspicious Vehicle",
+"50":"Suspicious Person","51":"Unruly Crowd","53":"Loitering",
+"54":"Unable to Complete Tour","55":"Audio Does Not Call Back","57":"Shift Change",
+"58":"Video Images Retrieved","59":"Video Images Recorded","60":"Account Placed on Line",
+"61":"Pictures Placed in File","62":"Broadcast Tone","63":"Unruly Customer at Counter",
+"65":"Gas Drive Off","66":"No Criminal Activity Observed",
+"69":"Unable to Obtain Closing Information","70":"Animal on Site","75":"Guard - Perimeter",
+"76":"Guard - On Break","77":"Guard - On Lunch","78":"Guard - Returning",
+"80":"Conducted Visual Tour","82":"RP Contacted","83":"Theft in Progress",
+"84":"Quality Check By","85":"Escort Information Obtained","86":"Incident Acknowledged By",
+"87":"Contacted Help Desk","88":"Audit Requested","89":"Client Activated Westec Phone",
+"90":"Authorities Arrived","91":"Restoral Received","92":"ABO Jurisdiction Requirements",
+"93":"Flipped Panel","96":"Tracked Event"
+};
+
+/* Four bands. Only the clock moves: the required elements and the
+   disqualifying checks are identical at every level, so nobody gets to write
+   a looser narrative for being new, they just get more time to write a good
+   one. Expert is the published standard that feeds the business case. */
+const LEVELS = [
+  {id:"novice",  name:"Novice",   mult:1.6, blurb:"Benchmarks run 60 percent longer than standard."},
+  {id:"beginner",name:"Beginner", mult:1.3, blurb:"Benchmarks run 30 percent longer than standard."},
+  {id:"expert",  name:"Expert",   mult:1.0, blurb:"The published standard. These are the runs the handling-time figures come from."},
+  {id:"elite",   name:"Elite",    mult:0.8, blurb:"Benchmarks tighten by 20 percent on top of the standard."}
+];
+const PROMOTE_ON = 2;
+
+const BENCH = {
+  lifesafety:{detect:15,classify:10,dial:20,relay:60,escalate:60,report:300},
+  property:  {detect:20,classify:15,dial:30,relay:90,escalate:60,report:300},
+  access:    {detect:25,classify:20,dial:45,relay:90,escalate:90,report:300},
+  ambiguous: {detect:20,classify:25,dial:60,relay:90,escalate:60,report:300},
+  disturbance:{detect:20,classify:15,dial:35,relay:75,escalate:60,report:300}
+};
+const GATES = [
+  {k:"detect",   t:"Flags the event"},
+  {k:"classify", t:"Classifies and assigns tier"},
+  {k:"dial",     t:"Names the first call"},
+  {k:"relay",    t:"Delivers actionable information"},
+  {k:"escalate", t:"Posts internal escalation"},
+  {k:"report",   t:"Files the incident report"}
+];
+
+/* ================= scenarios ================= */
+const SCEN = [
+{ id:"lot-bna", cls:"property", name:"After-hours vehicle break-in, front lot", onset:"0:47",
+  brief:"Overnight, no staff on site. A single subject moves between parked contractor vehicles in the front lot, pulling door handles, then gets into one and stays inside.",
+  tier:"Tier 3. Property crime in progress, no life safety exposure.",
+  call:"Site-specific law enforcement non-emergency line for that store’s jurisdiction, then the on-call store manager.",
+  traps:"Watch for: dialing Plano 911 out of habit, burning forty seconds on the plate before making any call, and writing the crime instead of the conduct.",
+  obs:[{t:"Repositioned the exterior camera to hold the vehicle in frame"},{t:"Placed a preservation hold before the retention window closed",crit:true}],
+  codes:{primary:["46"],also:["23", "82", "13", "90", "58", "59"],wrong:[["39", "Nothing was demanded and no one was confronted."], ["41", "This is a lot, not a retail floor."]],note:"46 reads Burglary, which is a legal conclusion. It is the right field to select and the wrong word for your narrative, where you write that the subject entered a parked vehicle."},
+  g:{
+    detect:{q:"Flag it in one line, in report language.",terms:["observed","subject"],
+      req:[["the observation verb","observed","observing","i observe"],
+           ["a neutral subject label","subject"],
+           ["the conduct described, not named","vehicle","truck","door","handle","lot","entered","inside"]],
+      chips:["I observed", "Subject 1", "an adult male", "approximately", "pulling door handles", "on parked vehicles", "in the front lot"],bad:["a guy breaking into cars", "he's trying to steal a truck", "looks suspicious"],model:"I observed Subject 1, an adult male approximately six feet, pulling door handles on parked vehicles in the front lot."},
+    classify:{q:"Classify it. Incident type and tier. Internal taxonomy, so a category name is fine here.",terms:[],
+      req:[["the tier","tier 3","tier three"],
+           ["the incident type","burglary","break-in","break in","bmv","theft","property crime"],
+           ["the comment code","code 46"]],
+      no:[["Over-classified a property crime as life safety",true,"tier 1","tier one"],
+          ["Named a second tier alongside the correct one",false,"tier 2","tier two"],
+          ["Coded a vehicle burglary as a robbery or a retail shoplifting",false,"code 39","code 41"]],
+      chips:["Tier 3", "Code 46", "burglary of a motor vehicle", "property crime", "no life safety exposure", "no persons at risk"],bad:["Tier 2", "Tier 1", "Code 39", "Code 41"],model:"Tier 3, vehicle burglary, no life safety exposure. Code 46."},
+    dial:{q:"Who are you calling first? Name the agency and which line.",terms:[],
+      req:[["the non-emergency line","non-emergency","non emergency","nonemergency"],
+           ["the agency","police","pd","sheriff","law enforcement","dispatch"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Used 911 for a no-contact property crime",true,"911"]],
+      chips:["the non-emergency line", "for the store's jurisdiction", "local police department", "then the on-call store manager"],bad:["911", "Plano PD"],model:"Law enforcement non-emergency line for the store's jurisdiction, then the on-call store manager."},
+    relay:{q:"Type exactly what you say to them, in report language.",terms:["observed","subject","approximately"],
+      req:[["the observation verb","observed","observing"],
+           ["the site and address","store","home depot","hd ","address","street","blvd","avenue","road","drive"],
+           ["a neutral subject label","subject"],
+           ["a hedge on any estimate","approximately","approx"],
+           ["that no one is at risk","no injur","no weapon","property only","unoccupied","no life safety","no persons","nobody on site","no staff on site"]],
+      no:[["Directed someone to intervene",true,"intervene","confront","apprehend","detain","stop him","stop them"]],
+      chips:["I observed", "Subject 1", "an adult male", "approximately", "wearing", "store number", "at the front lot", "entering a parked vehicle", "the store is unoccupied", "no injuries and no weapon observed"],bad:["he stole a truck", "acting suspicious", "tried to break in"],model:"I observed Subject 1, an adult male approximately six feet wearing a dark jacket, enter a parked vehicle in the front lot at store 0412, 4121 Beltline Road. The store is unoccupied. No injuries and no weapon observed."},
+    escalate:{q:"Type your internal escalation message.",terms:["systime"],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the system time","system time","timestamp","time stamp","hrs"],
+           ["the status","standby","advised","notified","in progress","en route","update"]],
+      chips:["Supervisor advised", "escalation channel", "system time", "PD notified, non-emergency", "standby for further information", "update to follow"],bad:["subject was acting suspicious", "he tried to take the truck"],model:"Supervisor advised. Vehicle entry in progress at store 0412, system time 02:41. PD notified on the non-emergency line. Standby for further information."},
+    report:{q:"Type the report narrative header: observation, system time, clip handling, disposition.",terms:["observed","systime","native","hold","chain"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"]],
+      chips:["I observed", "Camera 14 depicts", "system time", "native format export", "preservation hold placed", "chain of custody logged", "Code 59 video images recorded", "disposition: referred to PD"],bad:["he stole the tools", "obviously a theft"],model:"I observed Subject 1 enter a parked vehicle in the front lot, system time 02:41:16. Footage exported in native format, preservation hold placed on camera 14, chain of custody logged. Disposition: referred to PD, pending."}
+  }},
+
+{ id:"lumber-weapon", cls:"lifesafety", name:"Weapon drawn in the lumber yard", onset:"1:02",
+  brief:"Business hours. A subject arguing with an associate near the lumber racks reaches into his waistband and draws what appears to be a handgun. Several customers are in frame.",
+  tier:"Tier 1. Weapon present, immediate life safety.",
+  call:"The 911 PSAP that actually covers that store’s address. Internal notification comes after.",
+  traps:"Watch for: posting to Teams before dialing, and a flat claim that the subject has a gun. You hedge the identification in writing and you stay plain with dispatch. Both are correct in their place.",
+  obs:[{t:"Stayed on the line with dispatch rather than hanging up",crit:true},{t:"Kept the subject in frame through the egress"}],
+  codes:{primary:["32"],also:["37", "13", "90", "59", "86"],wrong:[["31", "No contact was observed. Code what happened, not what nearly did."], ["39", "Nothing was demanded or taken."]],note:"32 Threat is the closest fit on the current sheet. There is no code for a weapon displayed without contact, which is worth raising with whoever owns the sheet."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. You cannot positively identify a firearm from a camera, so write it the way it would survive.",terms:["observed","subject","appears"],
+      req:[["the observation verb","observed","observing"],
+           ["a neutral subject label","subject"],
+           ["a hedge on the object","appears to be","appears","consistent with"],
+           ["the object named","weapon","gun","firearm","handgun","pistol"]],
+      no:[["Stated the object as a weapon with no hedge, which the image cannot support",true,"has a gun","had a gun","pulled a pistol","pulled a gun","is armed with","was armed with"]],
+      chips:["I observed", "Subject 1", "draw an object from his waistband", "that appears to be", "a handgun", "consistent with a firearm"],bad:["he has a gun", "he's obviously armed", "the guy pulled a pistol"],model:"I observed Subject 1 draw an object from his waistband that appears to be a handgun."},
+    classify:{q:"Classify it. Incident type and tier.",terms:[],
+      req:[["the tier","tier 1","tier one"],
+           ["the weapon","weapon","gun","firearm","handgun","armed"],
+           ["the comment code","code 32"]],
+      no:[["Classified a weapons call below Tier 1",true,"tier 2","tier two","tier 3","tier three"],
+          ["Coded a weapon display as an assault or a robbery, neither of which was observed",false,"code 31","code 39"]],
+      chips:["Tier 1", "Code 32", "weapon present", "immediate life safety", "customers in the area"],bad:["Tier 2", "Code 31", "Code 39"],model:"Tier 1, weapon present, immediate life safety. Code 32."},
+    dial:{q:"Who are you calling first? Name the agency and which line.",terms:[],
+      req:[["emergency services","911","emergency"],
+           ["the right jurisdiction","psap","jurisdiction","local","site","county","city","store’s","stores"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Went non-emergency on a weapons call",true,"non-emergency","non emergency"]],
+      chips:["911", "the PSAP covering the store's address", "local jurisdiction", "internal notification after"],bad:["Plano 911", "non-emergency line"],model:"911, the PSAP covering that store's address. Internal notification after."},
+    relay:{q:"Type exactly what you say to the dispatcher. Be plain here, not hedged.",terms:["subject","approximately"],
+      req:[["the site and address","store","home depot","hd ","address","street","blvd","avenue","road","drive"],
+           ["the weapon in plain words","weapon","gun","firearm","handgun"],
+           ["a subject description","wearing","hoodie","jacket","shirt","hat","jeans","described","adult male","adult female"],
+           ["where in the store","lumber","yard","rack","aisle","rear","back of"],
+           ["a hedge on any estimate","approximately","approx"]],
+      chips:["Home Depot store number", "address", "subject with a weapon", "adult male", "wearing", "approximately", "in the lumber yard", "several customers in the area"],bad:["he's obviously going to shoot", "the guy assaulted an employee"],model:"Home Depot store 0412, 4121 Beltline Road. Subject with a weapon in the lumber yard. Adult male, approximately six feet, wearing a grey hooded sweatshirt. Several customers in the area."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the threat","weapon","gun","armed","tier 1"],
+           ["what they should do","shelter","avoid","lockdown","evacuate","clear the area","standby"]],
+      chips:["Supervisor and escalation channel", "Tier 1, weapon present", "911 contacted", "advise staff to shelter", "clear the area around the lumber racks", "standby for further information"],bad:["subject looked nervous beforehand", "he was going to use it"],model:"Supervisor and escalation channel: Tier 1, weapon present at store 0412. 911 contacted. Advise staff to shelter and clear the area around the lumber racks. Standby for further information."},
+    report:{q:"Type the report narrative header: observation, hedged identification, system time, clip handling, disposition.",terms:["observed","appears","systime","hold","chain"],
+      req:[["the observation verb","observed","depicts"],
+           ["a hedge on the object","appears to be","appears","consistent with"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"]],
+      chips:["I observed", "an object that appears to be a handgun", "system time", "native format export", "preservation hold placed", "chain of custody logged", "Code 59 video images recorded", "PD responded"],bad:["he pulled a gun and clearly meant to use it"],model:"I observed Subject 1 draw an object from his waistband that appears to be a handgun, system time 14:32:17. Footage exported in native format, preservation hold placed, chain of custody logged. Disposition: PD responded."}
+  }},
+
+{ id:"garden-medical", cls:"lifesafety", name:"Customer collapse in the garden center", onset:"0:38",
+  brief:"Mid-morning. A customer goes down in an aisle of the garden center. No bystander enters the frame for roughly twenty seconds. No visible cause.",
+  tier:"Tier 1. Medical emergency, life safety.",
+  call:"Site-specific EMS dispatch first, then the store manager to walk staff to the exact location.",
+  traps:"Watch for: naming a condition you cannot see, and giving EMS an aisle number instead of a door they can drive to.",
+  obs:[{t:"Kept eyes on the patient while talking"},{t:"Watched for EMS arrival and guided them in",crit:true}],
+  codes:{primary:[],also:["23", "13", "90", "82", "86", "59"],wrong:[["50", "A medical patient is not a suspect."], ["37", "Nobody was in a dispute."]],note:"No code on the current sheet covers a medical emergency. Use the authorities codes for the response steps, put the nature in narrative, and flag the gap. An operator who forces a near-miss code here is hiding a hole in the sheet instead of reporting it."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Describe, do not diagnose.",terms:["observed","subject"],
+      req:[["the observation verb","observed","observing"],
+           ["a neutral label for the person","subject","individual","customer","person"],
+           ["what you can see","collapse","fell","down","unresponsive","not moving","on the ground","floor","motionless"]],
+      no:[["Named a medical condition the camera cannot show",true,"heart attack","stroke","seizure","overdose","diabetic","cardiac arrest","aneurysm"]],
+      chips:["I observed", "an individual", "collapse to the floor", "in the garden center", "motionless", "not moving"],bad:["he's having a heart attack", "looks like a seizure"],model:"I observed an individual collapse to the floor in the garden center and remain motionless."},
+    classify:{q:"Classify it. Incident type and tier.",terms:[],
+      req:[["the tier","tier 1","tier one"],
+           ["that it is medical","medical","ems","collapse","unresponsive","injury"],
+           ["the comment code, or that none on the sheet applies","no code","no applicable","none applies","no comment code","narrative","gap"]],
+      no:[["Classified a medical emergency below Tier 1",true,"tier 2","tier two","tier 3","tier three"],
+          ["Forced a near-miss code onto a medical emergency",false,"code 50","code 31","code 37"]],
+      chips:["Tier 1", "no code on the sheet covers a medical emergency", "recording the nature in narrative", "life safety", "unresponsive individual"],bad:["Tier 3", "the customer was acting strange", "Code 50", "Code 37"],model:"Tier 1, medical emergency, life safety. No code on the sheet covers a medical emergency; recording the nature in narrative and flagging the gap."},
+    dial:{q:"Who are you calling first? Name the service and which line.",terms:[],
+      req:[["emergency medical","ems","911","ambulance","emergency"],
+           ["the right jurisdiction","psap","jurisdiction","local","site","county","city","store’s","stores"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Called the manager before EMS",true,"manager first","store manager first"]],
+      chips:["911 / EMS", "for the store's jurisdiction", "then the store manager"],bad:["Plano 911", "store manager first"],model:"911 EMS for the jurisdiction covering that store, then the store manager."},
+    relay:{q:"Type exactly what you say to the dispatcher.",terms:["approximately","appears"],
+      req:[["the site and address","store","home depot","hd ","address","street","blvd","avenue","road","drive"],
+           ["an entrance EMS can use","entrance","door","gate","garden center entrance","front of","loading"],
+           ["what you can observe","breathing","conscious","unresponsive","not moving","responsive","unknown"],
+           ["a hedge on elapsed time","approximately","approx"]],
+      no:[["Diagnosed instead of describing",true,"heart attack","stroke","seizure","overdose","diabetic","cardiac arrest"]],
+      chips:["Home Depot store number", "address", "the garden center entrance", "an adult individual", "down for approximately", "unresponsive, breathing status unknown", "no bystanders with the patient"],bad:["he's having a stroke"],model:"Home Depot store 0412, 4121 Beltline Road. Adult individual down in the garden center approximately two minutes. Unresponsive, breathing status unknown. Send EMS to the garden center entrance, not the main doors."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["what staff should do","send staff","meet ems","guide","clear the area","aed","first aid","assist"]],
+      chips:["Supervisor and store manager", "EMS contacted", "send staff to the garden center", "meet EMS at the entrance", "AED to the location"],bad:["she seemed nervous before going down"],model:"Supervisor and store manager advised. EMS contacted. Send staff to the garden center and meet EMS at the entrance."},
+    report:{q:"Type the report narrative header: observation, system time, clip handling, disposition.",terms:["observed","systime","hold"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"]],
+      chips:["I observed", "system time", "preservation hold placed", "native format export", "Code 59 video images recorded", "EMS transported", "disposition: closed, EMS response"],bad:["clearly a cardiac event"],model:"I observed an individual collapse in the garden center, system time 10:14:02. Footage exported in native format, preservation hold placed. Disposition: EMS transported, closed."}
+  }},
+
+{ id:"orc-crew", cls:"property", name:"Organized crew loading power tools", onset:"0:55",
+  brief:"Four subjects push two carts of boxed power tools toward the contractor exit. A vehicle is staged at the curb with a door already open. No contact with staff so far.",
+  tier:"Tier 2. Organized retail crime, no assault, no weapon shown.",
+  call:"Store asset protection on duty, then site-specific law enforcement non-emergency.",
+  traps:"This is the terminology scenario. Selection, retained possession, passed all points of sale without tendering payment, egress. Nothing was hidden, so concealment does not belong in this narrative at all.",
+  obs:[{t:"Repositioned to capture the plate before the vehicle left"},{t:"Did not direct staff toward the subjects",crit:true}],
+  codes:{primary:["83"],also:["41", "47", "82", "13", "90", "58", "59"],wrong:[["18", "The guidance on this one is no approach and no pursuit."], ["39", "No force and no confrontation was observed."]],note:"83 Theft in Progress is the code. In the narrative you still write the conduct: selected, retained possession, passed all points of sale without tendering payment, egress."},
+  g:{
+    detect:{q:"Flag it in one line, in report language.",terms:["observed","subject","selection"],
+      req:[["the observation verb","observed","observing"],
+           ["neutral subject labels","subject"],
+           ["the conduct described","cart","merchandise","tools","selected","selection","toward the exit"]],
+      chips:["I observed", "four subjects", "approximately", "selecting boxed power tools", "two carts", "moving toward the contractor exit"],bad:["four guys stealing tools", "they're obviously shoplifting"],model:"I observed four subjects selecting boxed power tools and moving two carts toward the contractor exit."},
+    classify:{q:"Classify it. Incident type and tier. Internal taxonomy, so a category name is fine here.",terms:[],
+      req:[["the tier","tier 2","tier two"],
+           ["the incident type","orc","organized","theft","larceny","grand theft"],
+           ["the comment code","code 83"]],
+      no:[["Named a second tier alongside the correct one",false,"tier 1","tier one","tier 3","tier three"],
+          ["Coded an observe-only event as a request to intervene, or as a robbery",false,"code 18","code 39"]],
+      chips:["Tier 2", "Code 83", "organized retail crime", "no assault, no weapon shown", "multiple subjects"],bad:["Tier 1", "they were casing the store first", "Code 18", "Code 39"],model:"Tier 2, organized retail crime, no assault and no weapon shown. Code 83."},
+    dial:{q:"Who are you calling first? Name both, in order.",terms:[],
+      req:[["asset protection on duty","asset protection","ap ","loss prevention","lp "],
+           ["law enforcement after","police","pd","sheriff","law enforcement","non-emergency","non emergency"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Used 911 on a property crime with no contact and no weapon",true,"911"]],
+      chips:["store asset protection on duty", "then law enforcement non-emergency", "for the store's jurisdiction"],bad:["911", "Plano PD"],model:"Store asset protection on duty, then law enforcement non-emergency for that store's jurisdiction."},
+    relay:{q:"Type exactly what you say to them, in report language. Walk the chain from selection through egress.",terms:["observed","selection","retained","pos","egress","continuous"],
+      req:[["the observation verb","observed","observing"],
+           ["selection","selected","selection"],
+           ["passing point of sale without payment","without tendering payment","without payment","passed all points of sale","passed point of sale","did not tender"],
+           ["egress and the route used","egress","exited through","exiting through","contractor exit","vestibule"],
+           ["no-pursuit guidance","do not approach","no pursuit","do not pursue","do not intervene","observe only","hands off"]],
+      no:[["Described concealment where none was observed",false,"conceal"],
+          ["Directed staff to intervene",true,"intervene","confront","apprehend","detain","block","stop them"]],
+      chips:["I observed", "four subjects", "selected boxed power tools", "retained possession", "passed all points of sale without tendering payment", "egress through the contractor exit", "a vehicle staged at the curb", "do not approach, observe only"],bad:["concealed the items", "they shoplifted four carts", "they tried to steal"],model:"I observed four subjects who selected boxed power tools, retained possession past all points of sale without tendering payment, and egress through the contractor exit to a vehicle staged at the curb. Do not approach, observe only."},
+    escalate:{q:"Type your internal escalation message.",terms:["continuous","lossvisual"],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the ORC flag","orc","organized","case","pattern","repeat","linked"],
+           ["the state of your visual","continuous observation","loss of visual","visual contact","observation was continuous"]],
+      chips:["Supervisor and escalation channel", "flag for the ORC case file", "observation was continuous", "loss of visual contact at", "PD notified, non-emergency"],bad:["crew was acting suspicious in the tool aisle"],model:"Supervisor and escalation channel: Tier 2 ORC at store 0412. Observation was continuous from selection through egress. PD notified on the non-emergency line. Flag for the ORC case file."},
+    report:{q:"Type the report narrative header: observation chain, system time, clip handling, loss estimate.",terms:["observed","continuous","systime","native","hold","chain"],
+      req:[["the observation verb","observed","depicts"],
+           ["the selection to egress chain","selection","selected","without tendering payment","egress"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"]],
+      chips:["I observed", "observation was continuous from", "selection", "through egress", "without tendering payment", "system time", "native format export", "preservation hold placed", "chain of custody logged", "Code 59 video images recorded", "estimated loss value"],bad:["they stole approximately"],model:"I observed four subjects who selected boxed power tools and passed all points of sale without tendering payment before egress through the contractor exit, system time 19:12:40. Observation was continuous from selection through egress. Footage exported in native format, preservation hold placed, chain of custody logged. Estimated loss value pending."}
+  }},
+
+{ id:"tailgate", cls:"access", name:"Tailgate at a restricted corporate door", onset:"0:31",
+  brief:"Corporate facility, 19:40. A badge read opens a restricted door. A second person follows in behind the badge holder with no read of their own. Neither is in uniform.",
+  tier:"Tier 3. Access control exception, no immediate threat indicated.",
+  call:"Facility security lead. No outside agency on this one.",
+  traps:"Watch for over-escalation. Calling police on an employee who forgot a badge does real damage. Watch too for naming the badge holder with no stated basis of recognition.",
+  obs:[{t:"Pulled the badge record and matched it to the camera timestamp"},{t:"Stated a basis of recognition before naming anyone, or named no one"},{t:"Did not dispatch an outside agency",crit:true}],
+  codes:{primary:[],also:["86", "88", "19", "04"],wrong:[["50", "An employee who forgot a badge is not a suspect, and this is unverified."], ["13", "No outside agency belongs on an unverified access exception."]],note:"No code on the current sheet covers an access control exception or a tailgate. Log the badge event in the access system of record, acknowledge the incident, and flag the gap. Reaching for 50 here is the over-escalation this scenario is testing."},
+  g:{
+    detect:{q:"Flag it in one line, in report language.",terms:["observed","subject"],
+      req:[["the observation verb","observed","observing","depicts"],
+           ["neutral subject labels","subject","individual"],
+           ["the access event","badge","tailgate","piggyback","no read","did not badge","access","credential"]],
+      chips:["I observed", "two individuals", "Subject 1 badged in", "Subject 2 entered behind with no badge read", "at the restricted east door"],bad:["some guy snuck in", "obviously trespassing"],model:"Camera 7 depicts two individuals entering the restricted east door. Subject 1 presented a credential; Subject 2 entered behind with no card read."},
+    classify:{q:"Classify it. Incident type and tier.",terms:[],
+      req:[["the tier","tier 3","tier three"],
+           ["the incident type","access","tailgate","piggyback","badge","unauthorized entry"],
+           ["the comment code, or that none on the sheet applies","no code","no applicable","none applies","no comment code","narrative","gap"]],
+      no:[["Over-classified an access exception as a threat",true,"tier 1","tier one"],
+          ["Coded an unverified access exception as a suspicious person, or dispatched authorities",false,"code 50","code 13"]],
+      chips:["Tier 3", "no code on the sheet covers an access control exception", "logging it in the access system of record", "access control exception", "tailgate", "no immediate threat indicated"],bad:["Tier 1", "Code 50", "Code 13"],model:"Tier 3, access control exception, no immediate threat indicated. No code on the sheet covers a tailgate; logging it in the access system of record and flagging the gap."},
+    dial:{q:"Who are you contacting first? Name the role.",terms:[],
+      req:[["the facility security lead","facility","security lead","site lead","security manager","on-site security","supervisor"]],
+      no:[["Dispatched an outside agency on an unverified access exception",true,"911","police","pd ","sheriff"]],
+      chips:["facility security lead", "on-site security", "no outside agency"],bad:["911", "local PD"],model:"Facility security lead. No outside agency on this one."},
+    relay:{q:"Type exactly what you say to them, in report language.",terms:["subject","systime","basis","approximately"],
+      req:[["the door and location","door","entrance","suite","floor","restricted","east","west","north","south","rear"],
+           ["the system time","system time","19:4","timestamp","time stamp","hrs"],
+           ["both subjects described","two","both","second","subject"],
+           ["the badge record","badge","credential","card read","access record","no read"]],
+      no:[["Identified someone with no stated basis of recognition",false,"i know who","i know him","i know her","i recognized him","i recognized her"]],
+      chips:["the restricted east door", "system time 19:40", "Subject 1 presented a credential", "Subject 2 entered with no card read", "both adult, neither in uniform", "basis of recognition:"],bad:["I know who it was", "definitely an employee"],model:"Restricted east door, system time 19:40. Subject 1 presented a credential; Subject 2 entered behind with no card read. Both adult, neither in uniform."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the system of record","access control","lenel","system of record","badge log","access log","ticket"]],
+      chips:["Supervisor advised", "logged in the access control system", "Lenel badge log pulled", "ticket opened", "facility security lead notified"],bad:["second subject looked nervous"],model:"Supervisor advised. Access control exception at the restricted east door, 19:40. Badge log pulled from the access control system, ticket opened."},
+    report:{q:"Type the report narrative header: observation, system time, badge record, disposition.",terms:["depicts","systime","basis","hold"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the badge record reference","badge","credential","access record","card","employee id"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"],
+           ["the disposition","disposition","closed","pending","referred","hr","verified","unverified"]],
+      chips:["Camera 7 depicts", "I observed", "system time", "badge record reference", "Code 59 video images recorded", "basis of recognition:", "disposition: referred to facility security", "disposition: pending verification"],bad:["he was obviously trespassing"],model:"Camera 7 depicts two individuals entering the restricted east door, system time 19:40:12. The badge record for the credential presented has been matched to the camera timestamp. No basis of recognition stated for either subject. Footage exported in native format, preservation hold placed. Disposition: referred to facility security, pending verification."}
+  }},
+
+{ id:"fence-breach", cls:"ambiguous", name:"Unverified perimeter breach, 02:15", onset:"0:29",
+  brief:"Overnight motion alert on the rear perimeter. A figure appears to cross the fence line, then the view is obscured by a stack of pallets for about forty seconds. Nothing else moves.",
+  tier:"Tier 2. Unverified intrusion. Verify on adjacent cameras before dispatching anyone.",
+  call:"Adjacent camera check first. Site-specific law enforcement only once there is a second confirmation.",
+  traps:"This one tests judgment in both directions and it is the hedging scenario. Appears to be, obscured from view, loss of visual contact. Dispatching on one ambiguous frame is a miss. So is dropping it with no log entry.",
+  obs:[{t:"Checked adjacent cameras before deciding",crit:true},{t:"Logged the observation even though it stayed unconfirmed"}],
+  codes:{primary:["50"],also:["80", "54", "66", "47", "59"],wrong:[["46", "Nothing was confirmed entered and nothing was taken."], ["13", "Not until verification gives you a second confirmation."]],note:"50 reads Suspicious Person, and suspicious is on the words-to-keep-out list. Both are correct at once. The code is a field in the event log and it is the right field. The word stays out of your narrative, where you write what the camera showed: a figure that appears to cross the fence line. If verification stays inconclusive, 66 No Criminal Activity Observed is the honest closing code."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Say only what the image supports.",terms:["observed","appears","obscured"],
+      req:[["the observation verb","observed","observing","depicts"],
+           ["a hedge on what you saw","appears to be","appears","possible","consistent with"],
+           ["the perimeter location","fence","perimeter","rear","yard","line","gate"]],
+      no:[["Stated an ambiguous observation as fact",true,"somebody jumped","someone jumped","jumped the fence"]],
+      chips:["I observed", "a figure that appears to", "cross the rear fence line", "possible perimeter breach", "obscured from view by pallets"],bad:["somebody jumped the fence", "clearly an intruder", "casing the yard"],model:"I observed a figure that appears to cross the rear fence line, then obscured from view by a pallet stack."},
+    classify:{q:"Classify it. Incident type and tier.",terms:[],
+      req:[["the tier","tier 2","tier two"],
+           ["that it is unverified","unverified","unconfirmed","possible","suspected","needs verification"],
+           ["the comment code","code 50"]],
+      no:[["Treated an unverified single frame as a confirmed intrusion",true,"tier 1","tier one","confirmed intrusion"],
+          ["Coded an unverified observation as a confirmed burglary, or dispatched authorities",false,"code 46","code 13"]],
+      chips:["Tier 2", "Code 50", "unverified intrusion", "possible perimeter breach", "requires verification"],bad:["Tier 1", "Code 46", "Code 13"],model:"Tier 2, unverified intrusion, requires verification. Code 50."},
+    dial:{q:"What is your next action, before anyone is dispatched?",terms:[],
+      req:[["camera verification","adjacent","nearby","other camera","second camera","verify","sweep","pan","check camera"]],
+      no:[["Dispatched on a single ambiguous frame",true,"911","call police","call pd","dispatch police"]],
+      chips:["check adjacent cameras", "verify on the north and east views", "pan the rear yard", "before any dispatch"],bad:["call 911", "dispatch police"],model:"Check adjacent cameras on the north and east views before any dispatch."},
+    relay:{q:"Verification came back inconclusive. Type what you pass on and to whom, in report language.",terms:["lossvisual","obscured","appears"],
+      req:[["who you are telling","supervisor","shift lead","manager","duty","security lead","patrol"],
+           ["the broken visual stated plainly","loss of visual","visual contact was lost","obscured from view","obscured"],
+           ["the uncertainty","unverified","unconfirmed","could not confirm","inconclusive","appears"],
+           ["what you recommend","patrol","drive by","check","monitor","physical check"]],
+      chips:["Supervisor advised", "visual contact was lost for approximately", "obscured from view by a pallet stack", "unverified, could not confirm", "recommend a physical check of the rear yard", "continue monitoring"],bad:["there's definitely someone back there"],model:"Supervisor advised. Possible activity at the rear fence line, system time 02:15. Visual contact was lost for approximately forty seconds, obscured from view by a pallet stack. Unverified, could not confirm on adjacent cameras. Recommend a physical check of the rear yard."},
+    escalate:{q:"Type your internal escalation message.",terms:["systime"],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the system time","system time","02:1","timestamp","time stamp","hrs"],
+           ["the standing watch","monitor","watch","continue","recheck","follow up","standby"]],
+      chips:["Supervisor and escalation channel", "system time 02:15", "unverified perimeter activity", "continuing to monitor", "recheck at interval", "standby for further information"],bad:["somebody is casing the yard"],model:"Supervisor and escalation channel: unverified perimeter activity at system time 02:15. Continuing to monitor and recheck at interval. Standby for further information."},
+    report:{q:"Type the report narrative header: observation, system time, the gap in your visual, disposition.",terms:["observed","depicts","lossvisual","systime","silent","hold"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the broken visual disclosed","loss of visual","visual contact was lost","obscured from view","obscured"],
+           ["the unresolved disposition","unverified","unconfirmed","inconclusive","no contact","monitored","open"]],
+      no:[["Wrote an unverified observation as a confirmed fact",true,"confirmed intruder","confirmed intrusion","intruder on site","subject breached the fence"]],
+      chips:["Camera 3 depicts", "I observed", "system time", "visual contact was lost for approximately 40 seconds", "obscured from view by a pallet stack", "preservation hold placed", "Code 59 video images recorded", "disposition: unverified, no contact made"],bad:["confirmed intruder on site"],model:"Camera 3 depicts a figure that appears to cross the rear fence line, system time 02:15:08. Visual contact was lost for approximately forty seconds, obscured from view by a pallet stack. Adjacent cameras did not confirm. Footage exported in native format, preservation hold placed. Disposition: unverified, no contact made."}
+  }}
+,
+{ id:"bwc-contact", cls:"lifesafety", name:"Body-worn camera activation, guard contact", onset:"0:33",
+  brief:"A contracted guard at a client site activates their body-worn camera during a contact near the loading dock. The live feed shows the subject closing the distance while the guard steps back twice. Audio is live on the channel. No weapon is visible in frame.",
+  tier:"Tier 1. Officer safety. A guard is in contact with a subject closing distance, with no weapon visible.",
+  call:"The 911 PSAP covering that site’s address, then the guard’s own supervisor on the account.",
+  traps:"Two people are in this frame and both of them are being recorded. The pull is to describe the subject in loaded terms and your own guard in flattering ones. Write both the same way. Body-worn footage is evidence about the guard’s conduct as much as the subject’s, and it is the first thing a plaintiff asks for.",
+  obs:[{t:"Kept the audio channel open and relayed what the guard said"},{t:"Described the guard’s actions in the same neutral language as the subject’s",crit:true},{t:"Started a preservation hold on the body-worn file, not only the fixed cameras",crit:true}],
+  codes:{primary:["37"],also:["47","13","90","59","85","86"],wrong:[["31","No contact between the two was observed."],["39","Nothing was demanded or taken."]],note:"There is no body-worn camera code on the current sheet. 37 Disturbance / Dispute covers the underlying incident and 47 On Site Guard Dispatched covers the guard already being there. The body-worn file still needs its own preservation hold and its own line in the chain of custody, which no code on this sheet captures."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Both people in frame are being recorded.",terms:["observed","subject"],
+      req:[["the observation verb","observed","observing"],
+           ["a neutral subject label","subject"],
+           ["the guard, named as neutrally as the subject","guard","officer","security officer"],
+           ["the conduct described","clos","step","distance","approach","toward","contact"]],
+      no:[["Characterized either party instead of describing what the camera showed",true,"aggressive","hostile","combative","got in his face","handled it professionally","handled it well","under control","out of control"]],
+      chips:["I observed","Subject 1","the guard","closing the distance","stepping back twice","at the loading dock","body-worn camera activation"],
+      bad:["the guy got aggressive","our officer handled it professionally","he was obviously going to swing"],model:"I observed Subject 1 closing the distance on the guard at the loading dock; the guard stepped back twice."},
+    classify:{q:"Classify it. Incident type, tier, and the comment code.",terms:[],
+      req:[["the tier","tier 1","tier one"],
+           ["the officer safety exposure","officer safety","guard safety","guard at risk","officer at risk","personnel safety"],
+           ["the comment code","code 37"]],
+      no:[["Classified an officer-safety contact below Tier 1",true,"tier 2","tier two","tier 3","tier three"],
+          ["Coded a contact with no blows struck as an assault, or as a robbery",false,"code 31","code 39"],
+          ["Characterized either party instead of describing what the camera showed",false,"aggressive","hostile","combative"]],
+      chips:["Tier 1","Code 37","officer safety","no weapon visible","guard in contact"],
+      bad:["Tier 2","Code 31","Code 39","the subject is hostile"],model:"Tier 1, officer safety, no weapon visible. Code 37."},
+    dial:{q:"Who are you calling first? Name the agency and which line.",terms:[],
+      req:[["emergency services","911","emergency"],
+           ["the right jurisdiction","psap","jurisdiction","local","site","county","city"],
+           ["the account supervisor after","supervisor","account","post commander","field supervisor"]],
+      no:[["Defaulted to Plano instead of the site’s jurisdiction",true,"plano"],
+          ["Went non-emergency on an officer-safety call",true,"non-emergency","non emergency"],
+          ["Called the supervisor before emergency services",true,"supervisor first"]],
+      chips:["911","the PSAP covering the site’s address","then the account supervisor","officer requesting assistance"],
+      bad:["Plano 911","the non-emergency line","his supervisor first"],model:"911, the PSAP covering the site's address, then the account supervisor."},
+    relay:{q:"Type exactly what you say to the dispatcher. Be plain here, not hedged.",terms:["subject","approximately"],
+      req:[["the site and address","site","address","street","blvd","avenue","road","drive","client"],
+           ["that a security officer is involved","guard","officer","security"],
+           ["a subject description","wearing","described","adult male","adult female","jacket","shirt","hoodie"],
+           ["the weapon status stated either way","no weapon","none visible","unarmed","weapon status"],
+           ["a hedge on any estimate","approximately","approx"]],
+      no:[["Characterized either party instead of describing what the camera showed",true,"aggressive","hostile","combative","got in his face","handled it professionally","handled it well","under control","out of control"]],
+      chips:["the client site address","a security officer is in contact with a subject","adult male","wearing","approximately","no weapon visible in frame","at the loading dock"],
+      bad:["the guy is getting aggressive","our officer has it under control","he was going to hit him"],model:"Client site, 4121 Beltline Road. A security officer is in contact with a subject at the loading dock. Adult male, approximately six feet, wearing a dark jacket. No weapon visible in frame."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the officer safety status","officer safety","guard safety","guard at risk","tier 1","contact in progress"],
+           ["the body-worn file","body-worn","bwc","body worn","wearable"]],
+      no:[["Characterized either party instead of describing what the camera showed",false,"aggressive","hostile","combative","handled it professionally","under control"]],
+      chips:["Supervisor and escalation channel","Tier 1, officer safety","911 contacted","body-worn file flagged for preservation","account supervisor notified"],
+      bad:["the subject is hostile","our officer has it under control"],model:"Supervisor and escalation channel: Tier 1, officer safety at the client site. 911 contacted. Body-worn file flagged for preservation. Account supervisor notified."},
+    report:{q:"Type the report narrative header: observation, system time, both parties, file handling, disposition.",terms:["observed","systime","native","hold","chain"],
+      req:[["the observation verb","observed","depicts"],
+           ["the security officer, named neutrally","guard","officer","security"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the body-worn file","body-worn","bwc","body worn","wearable"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"]],
+      no:[["Characterized either party instead of describing what the camera showed",true,"aggressive","hostile","combative","got in his face","handled it professionally","handled it well","under control"]],
+      chips:["I observed","Subject 1","the security officer","system time","body-worn file and fixed camera both preserved","native format export","preservation hold placed","chain of custody logged","Code 59 video images recorded","disposition: referred to PD"],
+      bad:["the subject was hostile","our officer handled it professionally","he clearly meant to attack"],model:"I observed Subject 1 close the distance on the security officer at the loading dock, system time 20:41:33; the officer stepped back twice. Body-worn file and fixed camera both preserved, exported in native format, chain of custody logged. Disposition: referred to PD."}
+  }},
+
+{ id:"stockroom-fire", cls:"lifesafety", name:"Fire alarm and visible smoke, stockroom", onset:"0:41",
+  brief:"A fire alarm signal comes in from a retail site at 21:10. The stockroom camera shows haze accumulating near the ceiling at the rear racking. No flame is visible in frame. Two associates are on the floor.",
+  tier:"Tier 1. Fire alarm with a corroborating visual. Life safety.",
+  call:"The 911 PSAP covering that store’s address, fire side. Then store leadership to confirm evacuation.",
+  traps:"Watch for: reporting flame nobody can see, routing to the police side out of habit, and treating a live signal as a test because the panel history shows recent testing. You have a visual, so it is live until the fire department says otherwise.",
+  obs:[{t:"Confirmed the associates evacuated rather than assuming it",crit:true},{t:"Did not silence or reset the panel before the fire department arrived",crit:true},{t:"Checked adjacent cameras for the extent of the smoke"}],
+  codes:{primary:["17"],also:["13","90","23","59","86","91"],wrong:[["48","This is a live signal, not a scheduled test."],["15","A service issue is a fault. This one has a corroborating visual."]],note:"17 Fire is the code. Resist 48 System Test even when the panel history shows recent testing: a corroborating visual makes it a live event, and coding it as a test is the entry that gets read back to you if the building burns."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Write what is in frame, not what it implies.",terms:["observed","obscured"],
+      req:[["the observation verb","observed","observing"],
+           ["what is actually visible","smoke","haze","accumulating"],
+           ["the location","stockroom","rear","racking","ceiling","back of"]],
+      no:[["Reported flame that is not visible in frame",true,"flames","flame","fire visible","burning","on fire","blaze","a fire in","is a fire"]],
+      chips:["I observed","smoke accumulating","near the ceiling","at the rear racking","no flame visible in frame","fire alarm signal received"],
+      bad:["there is a fire in the back","the racking is burning","flames in the stockroom"],model:"I observed smoke accumulating near the ceiling at the rear racking in the stockroom. No flame visible in frame."},
+    classify:{q:"Classify it. Incident type, tier, and the comment code.",terms:[],
+      req:[["the tier","tier 1","tier one"],
+           ["the incident type","fire","alarm with visual","smoke"],
+           ["the comment code","code 17"]],
+      no:[["Classified a fire alarm with a corroborating visual below Tier 1",true,"tier 2","tier two","tier 3","tier three"],
+          ["Coded a live signal as a system test or a service issue",false,"code 48","code 15"]],
+      chips:["Tier 1","Code 17","fire alarm with a corroborating visual","life safety","two associates on the floor"],
+      bad:["Tier 2","Code 48","Code 15"],model:"Tier 1, fire alarm with a corroborating visual, life safety. Code 17."},
+    dial:{q:"Who are you calling first? Name the agency and which side.",terms:[],
+      req:[["emergency services","911","emergency"],
+           ["the fire side","fire department","fire dispatch","fire side","fire"],
+           ["the right jurisdiction","psap","jurisdiction","local","site","county","city","store"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Went non-emergency on a fire alarm with a visual",true,"non-emergency","non emergency"],
+          ["Routed a fire call to the police side",false,"police","pd "]],
+      chips:["911, fire side","the PSAP covering the store’s address","then store leadership","confirm evacuation"],
+      bad:["Plano 911","the non-emergency line","local police department"],model:"911, fire side, the PSAP covering that store's address. Then store leadership to confirm evacuation."},
+    relay:{q:"Type exactly what you say to the dispatcher.",terms:["approximately"],
+      req:[["the site and address","store","home depot","hd ","address","street","blvd","avenue","road","drive"],
+           ["the alarm and the visual together","alarm","signal","panel"],
+           ["what the camera actually shows","smoke","haze","no flame","accumulating"],
+           ["how many people are inside","two","associates","occupants","persons inside","staff"],
+           ["where it is in the building","stockroom","rear","back of","racking"]],
+      no:[["Reported flame that is not visible in frame",true,"flames","flame","fire visible","burning","on fire","blaze","a fire in","is a fire"],
+          ["Reported an evacuation nobody has confirmed",true,"already out","everyone is out","all clear","have evacuated","are evacuated"]],
+      chips:["Home Depot store number","address","fire alarm signal with a corroborating visual","smoke accumulating at the rear racking","no flame visible","two associates on the floor","rear stockroom"],
+      bad:["the building is on fire","flames at the back","everyone is out already"],model:"Home Depot store 0412, 4121 Beltline Road. Fire alarm signal with a corroborating visual. Smoke accumulating at the rear racking in the stockroom, no flame visible. Two associates on the floor, evacuation status being confirmed."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the fire status","fire","tier 1","alarm with visual","smoke"],
+           ["the evacuation status","evacuat","headcount","accounted","clear the building","out of the building"]],
+      no:[["Dismissed a live alarm as a nuisance before anyone verified it",false,"probably just","nuisance alarm","false alarm","burnt","burned"]],
+      chips:["Supervisor and escalation channel","Tier 1, fire alarm with a visual","911 fire contacted","evacuation status being confirmed","store leadership notified"],
+      bad:["probably just burnt popcorn","false alarm most likely"],model:"Supervisor and escalation channel: Tier 1, fire alarm with a visual at store 0412. 911 fire contacted. Evacuation status being confirmed with store leadership."},
+    report:{q:"Type the report narrative header: observation, system time, clip handling, disposition.",terms:["observed","systime","native","hold"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["what was visible, not inferred","smoke","haze","no flame"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"],
+           ["the disposition","disposition","closed","pending","referred","fire department","responded"]],
+      no:[["Reported flame that is not visible in frame",true,"flames","fire visible","burning","on fire","blaze","is a fire"]],
+      chips:["I observed","system time","smoke accumulating, no flame visible in frame","native format export","preservation hold placed","Code 59 video images recorded","disposition: fire department responded"],
+      bad:["the stockroom was on fire","clearly an electrical fire"],model:"I observed smoke accumulating near the ceiling at the rear racking, system time 21:10:44. No flame visible in frame at any point. Footage exported in native format, preservation hold placed. Disposition: fire department responded."}
+  }},
+
+{ id:"feed-loss", cls:"ambiguous", name:"Site-wide camera loss, 03:08", onset:"0:22",
+  brief:"At 03:08 every camera at one retail site drops within about twelve seconds. The alarm panel is still reporting normally. The site was quiet on the last frames. No service ticket is open for this location.",
+  tier:"Tier 2. Unverified loss of coverage. Establish whether it is a fault or an interruption before dispatching anyone.",
+  call:"Help desk, to confirm the scope and whether other sites on the same circuit dropped. Law enforcement only once alarm activity corroborates.",
+  traps:"This one fails in both directions. Writing it up as a service ticket and moving on misses a feed killed ahead of a burglary. Dispatching police on what turns out to be a carrier outage burns a response and your standing with that agency. And you cannot write that the feed was cut. You can write that it dropped and you could not re-establish it.",
+  obs:[{t:"Checked whether other sites on the same circuit were affected",crit:true},{t:"Checked the alarm panel status rather than relying on video alone"},{t:"Preserved the final frames before the loss",crit:true}],
+  codes:{primary:["21"],also:["15","87","02","09","06","91","48"],wrong:[["46","Nothing was confirmed entered. There is no visual at all."],["13","Not on a video loss with no alarm activity behind it."]],note:"21 Video Does Not Dial Up is the code, with 87 Contacted Help Desk and 02 Service Ticket on File as the response steps, and 91 Restoral Received to close it if the feed returns. If alarm activity follows the loss, this stops being a service issue and the codes change with it."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Say what happened, not what caused it.",terms:["observed","lossvisual"],
+      req:[["the observation verb","observed","observing","depicts"],
+           ["the scope","all","every","site-wide","site wide","entire site"],
+           ["what happened to the feed","dropped","lost","offline","no signal","went dark","loss of video","feed loss"]],
+      no:[["Stated a cause the loss does not show",true,"cut the","cutting the","was cut","sabotage","tampered","they disabled","someone disabled"]],
+      chips:["I observed","all cameras at the site","dropped within approximately twelve seconds","no signal","the alarm panel is still reporting","the site was quiet on the final frames"],
+      bad:["someone cut the feed","they disabled the cameras","obviously a break-in starting"],model:"I observed all cameras at the site drop within approximately twelve seconds, no signal on any view. The alarm panel is still reporting."},
+    classify:{q:"Classify it. Incident type, tier, and the comment code.",terms:[],
+      req:[["the tier","tier 2","tier two"],
+           ["that the cause is not established","unverified","unconfirmed","cause unknown","not established","undetermined"],
+           ["the comment code","code 21"]],
+      no:[["Treated an unexplained loss as a confirmed intrusion",true,"tier 1","tier one","confirmed intrusion","confirmed burglary"],
+          ["Coded it as a burglary, or dispatched authorities, with nothing corroborating",false,"code 46","code 13"]],
+      chips:["Tier 2","Code 21","loss of coverage","cause not established","alarm panel still reporting"],
+      bad:["Tier 1","Code 46","Code 13"],model:"Tier 2, loss of coverage, cause not established. Code 21."},
+    dial:{q:"What is your next action, and who do you contact first?",terms:[],
+      req:[["the help desk","help desk","helpdesk","service desk","support"],
+           ["the scope question","other sites","same circuit","scope","how many sites","carrier","network"]],
+      no:[["Dispatched police on a video loss with nothing corroborating it",true,"911","call police","call pd","dispatch police"]],
+      chips:["contact the help desk","confirm whether other sites on the same circuit dropped","check the carrier status","before any dispatch"],
+      bad:["call 911","dispatch police to the site"],model:"Contact the help desk and confirm whether other sites on the same circuit dropped, before any dispatch."},
+    relay:{q:"Type exactly what you pass on, and to whom.",terms:["lossvisual","systime"],
+      req:[["who you are telling","help desk","supervisor","shift lead","manager","duty","service desk"],
+           ["the system time of the loss","system time","03:0","timestamp","time stamp"],
+           ["the scope as observed","all","every","site-wide","site wide"],
+           ["the alarm panel state","panel","alarm","no activity","still reporting"],
+           ["that the cause is not established","unverified","unconfirmed","cause unknown","not established","undetermined"]],
+      no:[["Stated a cause the loss does not show",true,"cut the","cutting the","was cut","sabotage","tampered","they disabled","someone disabled"]],
+      chips:["Help desk","system time 03:08","all cameras at the site dropped","the alarm panel is still reporting normally","cause not established","requesting scope across the circuit"],
+      bad:["the feed was cut","someone tampered with the box","obviously deliberate"],model:"Help desk: all cameras at store 0412 dropped at system time 03:08. The alarm panel is still reporting normally with no activity since. Cause not established. Requesting scope across the circuit."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the loss of coverage stated plainly","no coverage","loss of coverage","blind","no video","cameras down"],
+           ["the standing watch","monitor","watch","continue","recheck","follow up","standby","until restored"]],
+      no:[["Settled on a cause before the help desk confirmed anything",false,"probably just","must be the","definitely the"],
+          ["Stated a cause the loss does not show",false,"cut the","cutting the","was cut","sabotage","tampered"]],
+      chips:["Supervisor and escalation channel","the site has no video coverage","help desk engaged","monitoring the alarm panel","standby for restoral"],
+      bad:["probably just the internet","someone is cutting the lines"],model:"Supervisor and escalation channel: the site has no video coverage as of 03:08. Help desk engaged. Monitoring the alarm panel, standby for restoral."},
+    report:{q:"Type the report narrative header: observation, system time, what you preserved, disposition.",terms:["observed","systime","native","hold","silent"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["the final frames preserved","final frames","last frames","prior to the loss","before the loss","preceding"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"],
+           ["the unresolved disposition","unverified","unconfirmed","cause unknown","pending","open","not established"]],
+      no:[["Stated a cause the loss does not show",true,"cut the","cutting the","was cut","sabotage","tampered","staged"]],
+      chips:["I observed","system time 03:08","the final frames prior to the loss were preserved","preservation hold placed","native format export","Code 59 video images recorded","disposition: pending help desk, cause not established"],
+      bad:["the feed was cut deliberately","clearly a staged outage"],model:"I observed all cameras at the site drop, system time 03:08:12. The final frames prior to the loss were preserved and exported in native format, preservation hold placed. Disposition: pending help desk, cause not established."}
+  }},
+
+{ id:"entrance-refusal", cls:"disturbance", name:"Subject refusing to leave the entrance", onset:"0:36",
+  brief:"Evening, business hours. A subject is seated against the wall inside the vestibule, unsteady when he tries to stand. Customers are stepping around him. An associate has spoken with him twice and he has not moved.",
+  tier:"Tier 3. Disturbance, no threat shown. Re-tier immediately if he stops responding.",
+  call:"Store leadership first, with a special-instructions check, then site-specific law enforcement non-emergency. EMS instead the moment he becomes unresponsive.",
+  traps:"The whole scenario is a character-conclusion trap. Unsteady is observable. Intoxicated is a cause you cannot establish from a camera, and putting it in the record makes the account’s position worse if this turns into a medical event or a claim. The re-tier most operators miss: if he stops responding this is a medical call, not a trespass call.",
+  obs:[{t:"Checked the account’s special instructions before recommending a call",crit:true},{t:"Watched for responsiveness rather than treating it as a static trespass",crit:true},{t:"Did not direct the associate to make physical contact",crit:true}],
+  codes:{primary:["07"],also:["37","53","23","82","13","90","59"],wrong:[["38","States a cause you cannot establish from a camera."],["31","No contact between anyone was observed."]],note:"07 Refusing to Leave describes what you can see. 38 Intoxicated Persons describes a cause you cannot establish from a camera, and it is the entry a plaintiff’s counsel reads aloud. If he stops responding this becomes a medical emergency and the sheet runs out of codes, exactly as it does in the garden center scenario."},
+  g:{
+    detect:{q:"Flag it in one line, in report language. Describe the behavior, not its cause.",terms:["observed","subject"],
+      req:[["the observation verb","observed","observing"],
+           ["a neutral subject label","subject","individual"],
+           ["what is observable, not the cause","unsteady","seated","against the wall","has not moved","swaying","unable to stand"],
+           ["where","vestibule","entrance","entry","doorway"]],
+      no:[["Stated intoxication, which a camera cannot establish",true,"intoxicated","drunk","drunken","under the influence","wasted"],
+          ["Stated a status you cannot observe from a camera",true,"vagrant","homeless","transient","bum"]],
+      chips:["I observed","a subject","seated against the vestibule wall","unsteady when attempting to stand","has not moved after two associate contacts","customers stepping around him"],
+      bad:["an intoxicated male","a drunk guy at the door","obviously a vagrant"],model:"I observed a subject seated against the vestibule wall, unsteady when attempting to stand, who has not moved after two associate contacts."},
+    classify:{q:"Classify it. Incident type, tier, and the comment code.",terms:[],
+      req:[["the tier","tier 3","tier three"],
+           ["the incident type","refusing to leave","refusal","disturbance","will not leave"],
+           ["the comment code","code 07"]],
+      no:[["Over-classified a disturbance with no threat shown",true,"tier 1","tier one"],
+          ["Coded a cause the camera cannot establish, or a contact that did not happen",false,"code 38","code 31"],
+          ["Stated intoxication, which a camera cannot establish",false,"intoxicated","drunk","under the influence"]],
+      chips:["Tier 3","Code 07","refusing to leave","no threat shown","re-tier to medical if he stops responding"],
+      bad:["Tier 1","Code 38","Code 31","intoxicated subject"],model:"Tier 3, refusing to leave, no threat shown. Code 07. Re-tier to medical if he stops responding."},
+    dial:{q:"Who are you contacting first, and what do you check before recommending a call?",terms:[],
+      req:[["store leadership first","store leadership","manager","leadership","store lead"],
+           ["the special instructions check","special instruction","account instruction","post order","site instruction","standing instruction"],
+           ["law enforcement after, non-emergency","non-emergency","non emergency","police","law enforcement"]],
+      no:[["Defaulted to Plano instead of the store’s jurisdiction",true,"plano"],
+          ["Reached for 911 on a disturbance with no threat and no medical change",false,"911"]],
+      chips:["store leadership","check the account’s special instructions","then law enforcement non-emergency","for the store’s jurisdiction","EMS the moment he stops responding"],
+      bad:["Plano PD","911 now"],model:"Store leadership first, and check the account's special instructions. Then law enforcement non-emergency for that store's jurisdiction."},
+    relay:{q:"Type exactly what you say to them, in report language.",terms:["subject","observed"],
+      req:[["the site and address","store","home depot","hd ","address","street","blvd","avenue","road","drive"],
+           ["what is observable, not the cause","unsteady","seated","has not moved","unable to stand"],
+           ["where in the building","vestibule","entrance","entry","doorway"],
+           ["that staff have already asked him to leave","asked","associate","spoken","requested","twice"],
+           ["no-contact guidance","do not touch","no physical contact","do not make contact","hands off","do not move him"]],
+      no:[["Stated intoxication, which a camera cannot establish",true,"intoxicated","drunk","drunken","under the influence","wasted"],
+          ["Directed staff to make physical contact",true,"drag","carry him","pick him up","put hands on","remove him","escort him out"]],
+      chips:["Home Depot store number","address","a subject seated in the vestibule","unsteady when attempting to stand","associates have asked him to leave twice","no physical contact","requesting a welfare check"],
+      bad:["an intoxicated male","have them drag him out","he is just a drunk"],model:"Home Depot store 0412, 4121 Beltline Road. A subject is seated in the vestibule, unsteady when attempting to stand. Associates have asked him to leave twice. No physical contact; requesting a welfare check."},
+    escalate:{q:"Type your internal escalation message.",terms:[],
+      req:[["who you are notifying","supervisor","shift lead","manager","duty","escalation","teams","channel"],
+           ["the re-tier condition","unresponsive","stops responding","medical","re-tier","ems"],
+           ["the current status","refusing","has not moved","no threat","awaiting","en route"]],
+      no:[["Stated intoxication, which a camera cannot establish",false,"intoxicated","drunk","drunken","under the influence"],
+          ["Stated a status you cannot observe from a camera",false,"vagrant","homeless","transient"]],
+      chips:["Supervisor and escalation channel","Tier 3, refusing to leave","no threat shown","watching for responsiveness","re-tier to medical if he stops responding","PD en route non-emergency"],
+      bad:["just a drunk at the door","he is obviously homeless"],model:"Supervisor and escalation channel: Tier 3, refusing to leave at store 0412, no threat shown. Watching for responsiveness; re-tier to medical if he stops responding. PD en route non-emergency."},
+    report:{q:"Type the report narrative header: observation, system time, clip handling, disposition.",terms:["observed","systime","native","hold"],
+      req:[["the observation verb","observed","depicts"],
+           ["system time","system time","timestamp","time stamp"],
+           ["what was observable, not the cause","unsteady","seated","has not moved","unable to stand"],
+           ["the evidence handling","native format","preservation hold","chain of custody","exported","preserved","code 58","code 59"],
+           ["the disposition","disposition","closed","pending","referred","departed","transported"]],
+      no:[["Stated intoxication, which a camera cannot establish",true,"intoxicated","drunk","drunken","under the influence"],
+          ["Stated a status you cannot observe from a camera",true,"vagrant","homeless","transient"]],
+      chips:["I observed","system time","a subject seated in the vestibule, unsteady when attempting to stand","associates contacted him twice","native format export","preservation hold placed","Code 59 video images recorded","disposition: departed with PD"],
+      bad:["the intoxicated male was removed","clearly a transient"],model:"I observed a subject seated in the vestibule, unsteady when attempting to stand, system time 19:48:21. Associates contacted him twice. Footage exported in native format, preservation hold placed. Disposition: departed with PD."}
+  }}
+];
+
+/* ================= helpers ================= */
+const $=id=>document.getElementById(id);
+function fmt(s){if(s==null||isNaN(s))return "—";const m=Math.floor(s/60);return m+":"+((s-m*60)<10?"0":"")+(s-m*60).toFixed(1);}
+function fmtShort(s){if(s==null||isNaN(s))return "—";const m=Math.floor(s/60),r=Math.round(s-m*60);return m+":"+(r<10?"0":"")+r;}
+function parseTs(v){v=(v||"").trim();if(v.includes(":")){const p=v.split(":");return (parseInt(p[0],10)||0)*60+(parseFloat(p[1])||0);}return parseFloat(v)||0;}
+function pct(a,b){return b?Math.round(a/b*100)+"%":"—"}
+function norm(v){return " "+(v||"").toLowerCase().replace(/[^\w\s#$%:'’-]/g," ").replace(/\s+/g," ").trim()+" ";}
+/* Two scrubs, applied to different checks.
+   negScrub covers everything: "do not intervene" and "no pursuit" read as the
+   correct guidance they are, not as the thing being forbidden.
+   codeScrub covers only the universal word lists: a comment code carries its
+   official wording, which is sometimes a legal conclusion or a word the report
+   standard keeps out, and selecting the code is correct. It is deliberately NOT
+   applied to a scenario's own checks, which are written to catch a wrong code. */
+function negScrub(text){
+  return text.replace(/\b(?:do not|does not|did not|don['\u2019]?t|dont|never|avoid|without|no)\s+\w+(?:\s+\w+)?/g," ").replace(/\s+/g," ");
+}
+function codeScrub(text){
+  /* Removes a code reference and, only when it immediately follows, that code's
+     own official wording. An earlier version dropped a fixed number of words
+     after the code, which quietly swallowed whatever the operator wrote next:
+     "Code 83, they were casing the store" lost "casing" and passed clean. */
+  const re=/\bcode\s*(\d{1,3})\b[\s,:.-]*/g;
+  let out="",last=0,m;
+  while((m=re.exec(text))!==null){
+    out+=text.slice(last,m.index)+" ";
+    let pos=m.index+m[0].length;
+    const key=m[1].length===1?"0"+m[1]:m[1];
+    const name=(CODES[key]||"").toLowerCase();
+    if(name&&text.substr(pos,name.length)===name) pos+=name.length;
+    last=pos;
+  }
+  out+=text.slice(last);
+  return out.replace(/\s+/g," ");
+}
+function matched(text,terms){
+  const alt=text.replace(/-/g," ");
+  for(const t of terms){const n=t.toLowerCase();if(text.includes(n)||alt.includes(n.replace(/-/g," ")))return t;}
+  return null;
+}
+/* Good phrases and distractors are shuffled together, deterministically per
+   gate, so the wrong answers are never simply the ones at the end. */
+function chipBank(k,spec){
+  const a=(spec.chips||[]).concat(spec.bad||[]);
+  let seed=2166136261;
+  for(let i=0;i<k.length;i++){seed=((seed^k.charCodeAt(i))*16777619)>>>0;}
+  for(let i=a.length-1;i>0;i--){
+    seed=(seed*1103515245+12345)>>>0;
+    const j=seed%(i+1),t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+function bannedFor(k){
+  const strict=STRICT.indexOf(k)>=0,out=[];
+  BANNED.forEach(b=>{
+    if(strict) out.push({label:b.label,crit:!b.soft,terms:b.terms,universal:true});
+    else if(b.cat==="intent"||b.cat==="character") out.push({label:b.label,crit:false,terms:b.terms,universal:true});
+  });
+  return out;
+}
+
+/* ================= state ================= */
+let sel=null,t0=null,raf=null,gi=0,marks={},answers={},attempts={},flags=[],allowance=12,mode="coached";
+let obsState=[],lastRun=null,runs=[],store=null,canWrite=true,badOnset=false,gateLock=null;
+let levelIdx=0,levelMult=1,helpUsed=false;
+
+/* A level is derived from the operator's own certification history, never
+   stored, so the log is always the evidence for it. Two clean runs at the
+   current level promote, and they have to be on DIFFERENT scenarios: repeating
+   one clip until it is memorised is not progress. A critical failure drops a
+   level. Anything else holds and resets the streak. */
+function levelFor(operator){
+  const name=(operator||"").trim().toLowerCase();
+  const out={idx:0,streak:[],runs:0};
+  if(!name) return out;
+  const mine=(runs||[])
+    .filter(r=>(r.operator||"").trim().toLowerCase()===name && r.mode==="cert")
+    .sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  out.runs=mine.length;
+  let idx=0,streak=[];
+  mine.forEach(r=>{
+    if(r.result==="Certified"){
+      if(streak.indexOf(r.scenarioId)<0) streak.push(r.scenarioId);
+      if(streak.length>=PROMOTE_ON && idx<LEVELS.length-1){idx++;streak=[];}
+    } else if(r.result==="Not certified"){
+      if(idx>0) idx--;
+      streak=[];
+    } else streak=[];
+  });
+  out.idx=idx;out.streak=streak;
+  return out;
+}
+function activeLevel(){
+  const pick=$("level").value;
+  if(pick!=="auto"){const i=LEVELS.findIndex(l=>l.id===pick);return i<0?0:i;}
+  return levelFor($("op").value).idx;
+}
+function updateLevel(){
+  const idx=activeLevel(),L=LEVELS[idx],st=levelFor($("op").value);
+  const op=$("op").value.trim();
+  let txt=L.name+". "+L.blurb;
+  if($("level").value==="auto"){
+    if(!op) txt="Novice until an operator name is entered. "+LEVELS[0].blurb;
+    else if(idx>=LEVELS.length-1) txt=L.name+". Top band. "+L.blurb;
+    else {
+      const need=PROMOTE_ON-st.streak.length;
+      txt=L.name+". "+L.blurb+" "+need+" more clean certification run"+(need===1?"":"s")
+        +" on "+(need===1?"a different scenario":"different scenarios")
+        +(need===1?" promotes":" promote")+" to "+LEVELS[idx+1].name+".";
+    }
+  }
+  $("levelhint").textContent=txt;
+}
+
+/* ================= setup screen ================= */
+(function(){
+  const ul=$("scenlist");
+  SCEN.forEach((sc,i)=>{
+    const li=document.createElement("li"),b=document.createElement("button");
+    b.type="button";b.setAttribute("aria-pressed","false");b.dataset.id=sc.id;
+    b.innerHTML='<span class="idx num">'+(i+1)+'</span><span class="nm"></span><span class="dsc"></span><span class="tier'+(sc.cls==="lifesafety"?" ls":"")+'"></span>';
+    b.querySelector(".nm").textContent=sc.name;
+    b.querySelector(".dsc").textContent=sc.brief;
+    b.querySelector(".tier").textContent=sc.tier;
+    b.addEventListener("click",()=>pick(sc.id));
+    li.appendChild(b);ul.appendChild(li);
+  });
+  $("scount").textContent=SCEN.length+" in the library";
+  $("op").addEventListener("input",updateLevel);
+  $("level").addEventListener("change",updateLevel);
+  updateLevel();
+  const ks=$("keyscen");
+  SCEN.forEach((sc,i)=>{const o=document.createElement("option");o.value=sc.id;o.textContent=(i+1)+". "+sc.name;ks.appendChild(o);});
+  function renderKeyRef(){
+    const sc=SCEN.find(x=>x.id===ks.value)||SCEN[0];
+    const host=$("keyrefbody");host.innerHTML="";
+    const lead=document.createElement("p");lead.className="lede";
+    lead.textContent=sc.tier+"  Correct first call: "+sc.call;
+    host.appendChild(lead);
+    GATES.forEach((g,i)=>{
+      const spec=sc.g[g.k];
+      const card=document.createElement("div");card.className="keycard";
+      const head=document.createElement("div");head.className="keyhead";
+      const h=document.createElement("h4");h.textContent=(i+1)+". "+g.t;head.appendChild(h);
+      const bn=document.createElement("span");bn.className="badge";
+      bn.textContent=(BENCH[sc.cls][g.k])+"s benchmark";head.appendChild(bn);
+      card.appendChild(head);
+      function row(lbl,text,cls){
+        const d=document.createElement("div");d.className="keyrow";
+        const l=document.createElement("p");l.className="lbl";l.textContent=lbl;
+        const v=document.createElement("p");v.className="val "+(cls||"");v.textContent=text;
+        d.appendChild(l);d.appendChild(v);card.appendChild(d);
+      }
+      row("Prompt",spec.q);
+      row("A model answer",spec.model,"model");
+      const req=document.createElement("div");req.className="keyrow";
+      const rl=document.createElement("p");rl.className="lbl";rl.textContent="Required in the answer";
+      const ul=document.createElement("ul");
+      spec.req.forEach(x=>{const li=document.createElement("li");li.textContent=x[0];ul.appendChild(li);});
+      req.appendChild(rl);req.appendChild(ul);card.appendChild(req);
+      if(spec.no&&spec.no.length){
+        const nd=document.createElement("div");nd.className="keyrow";
+        const nl=document.createElement("p");nl.className="lbl";nl.textContent="Scenario checks on this gate";
+        const nul=document.createElement("ul");
+        spec.no.forEach(n=>{const li=document.createElement("li");li.className="fl";li.textContent=n[0]+(n[1]?" (critical)":" (noted)");nul.appendChild(li);});
+        nd.appendChild(nl);nd.appendChild(nul);card.appendChild(nd);
+      }
+      host.appendChild(card);
+    });
+  }
+  ks.addEventListener("change",renderKeyRef);
+  renderKeyRef();
+
+  const cg=$("codegrid");
+  Object.keys(CODES).forEach(n=>{
+    const li=document.createElement("li");
+    li.innerHTML='<span class="cn"></span><span class="cd"></span>';
+    li.querySelector(".cn").textContent=n;
+    li.querySelector(".cd").textContent=CODES[n];
+    li.dataset.hay=(n+" "+CODES[n]).toLowerCase();
+    cg.appendChild(li);
+  });
+  const total=Object.keys(CODES).length;
+  $("codecount").textContent=total+" codes on the current sheet.";
+  $("codefilter").addEventListener("input",e=>{
+    const q=e.target.value.trim().toLowerCase();
+    let shown=0;
+    Array.prototype.forEach.call(cg.children,li=>{
+      const hit=!q||li.dataset.hay.indexOf(q)>=0;
+      li.hidden=!hit; li.classList.toggle("hit",!!q&&hit); if(hit)shown++;
+    });
+    $("codecount").textContent=q?shown+" of "+total+" codes match.":total+" codes on the current sheet.";
+  });
+
+  const gl=$("glosslist");
+  Object.keys(GLOSS).forEach(key=>{
+    const g=GLOSS[key],li=document.createElement("li");
+    li.innerHTML='<span class="tm"></span><p class="md"></p><p class="ex"></p>';
+    li.querySelector(".tm").textContent=g[0];
+    li.querySelector(".md").textContent=g[1];
+    li.querySelector(".ex").textContent='“'+g[2]+'”';
+    gl.appendChild(li);
+  });
+})();
+function pick(id){
+  sel=SCEN.find(s=>s.id===id);
+  document.querySelectorAll("#scenlist button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===id)));
+  $("onset").value=sel.onset;$("start").disabled=false;
+}
+
+/* ================= run ================= */
+$("start").addEventListener("click",startRun);
+function startRun(){
+  if(!sel)return;
+  gi=0;marks={};answers={};attempts={};flags=[];
+  allowance=Math.max(0,parseFloat($("allow").value)||0);
+  mode=$("mode").value;
+  levelIdx=activeLevel();levelMult=LEVELS[levelIdx].mult;
+  $("m-scen").textContent=sel.name;
+  $("m-op").textContent=$("op").value.trim()||"unnamed";
+  $("m-level").textContent=LEVELS[levelIdx].name;
+  $("a-title").textContent=sel.name;
+  $("a-brief").textContent=sel.brief;
+  $("a-tier").textContent=sel.tier;
+  $("a-call").textContent=sel.call;
+  $("a-traps").textContent=sel.traps;
+  /* The sidebar states the correct tier and the correct first call. In
+     certification mode that is two gates given away, so it starts hidden. The
+     operator can open it mid-run, and doing so is recorded: the toggle is free
+     to use, not free of consequence. */
+  helpUsed=false;
+  $("a-answers").hidden=(mode!=="coached");
+  $("a-toggle").textContent=$("a-answers").hidden?"Show answers":"Hide answers";
+  $("a-aided").hidden=true;
+  $("finish").hidden=true;
+  gateLock=null;
+  show("run");
+  t0=performance.now();
+  render();tick();
+}
+function tick(){
+  const e=(performance.now()-t0)/1000;
+  $("clock").textContent=fmt(e);
+  if(gateLock){
+    const left=gateLock.until-e;
+    if(left<=0) unlockGate();
+    else gateLock.msg.textContent="The event is not visible yet. Gate 1 opens at "+fmt(gateLock.until)+", in "+left.toFixed(1)+"s.";
+  }
+  raf=requestAnimationFrame(tick);
+}
+/* Gate 1 is scored from the moment the incident becomes observable, so it
+   cannot be answered before then. Locking it is what makes the number honest:
+   without it an operator can stamp a detection the clip has not shown yet. */
+function unlockGate(){
+  if(!gateLock)return;
+  gateLock.ta.disabled=false;
+  gateLock.sub.disabled=false;
+  gateLock.msg.textContent="The event is visible now. Gate 1 is on the clock.";
+  gateLock.msg.style.color="var(--over)";
+  $("clock").classList.remove("locked");
+  gateLock.ta.focus();
+  gateLock=null;
+}
+function elapsed(){return (performance.now()-t0)/1000}
+function benchFor(k){return Math.round(BENCH[sel.cls][k]*levelMult)+allowance;}
+function baseFor(i){return i===0?parseTs($("onset").value):marks[GATES[i-1].k];}
+
+function render(){
+  const ul=$("gates");ul.innerHTML="";
+  GATES.forEach((g,i)=>{
+    const li=document.createElement("li");
+    const row=document.createElement("div");row.className="grow";
+    row.innerHTML='<span class="n num">'+(i+1)+'</span><span class="t"></span><span class="stamp num">—</span>';
+    row.querySelector(".t").textContent=g.t;
+    const st=row.querySelector(".stamp");
+    if(marks[g.k]!=null){
+      li.className="done";
+      const d=marks[g.k]-baseFor(i),b=benchFor(g.k);
+      st.innerHTML=fmt(marks[g.k])+'<span class="delta '+(d<=b?"d-ok":"d-over")+'">'+d.toFixed(1)+'s of '+b+'s'+(attempts[g.k]>1?", "+(attempts[g.k]-1)+" rejected":"")+'</span>';
+    } else if(i===gi){ li.className="active";st.textContent="on the clock"; }
+    else { li.className="locked";st.textContent="locked"; }
+    li.appendChild(row);
+    if(i===gi&&marks[g.k]==null) li.appendChild(buildAsk(g));
+    ul.appendChild(li);
+  });
+  $("m-gate").textContent=gi<GATES.length?(gi+1)+" of 6":"complete";
+  $("m-att").textContent=gi<GATES.length?(attempts[GATES[gi].k]||0):0;
+  renderTerms();renderCodes();
+  const inp=document.querySelector("textarea.resp");if(inp&&!inp.disabled)inp.focus();
+}
+
+function renderCodes(){
+  const panel=$("codepanel"),body=$("codebody");
+  if(mode!=="coached"||!sel.codes){panel.hidden=true;return;}
+  panel.hidden=false;body.innerHTML="";
+  const c=sel.codes;
+  function set(label,arr,cls,withWhy){
+    if(!arr||!arr.length)return;
+    const d=document.createElement("div");d.className="kset "+(cls||"");
+    const l=document.createElement("p");l.className="klab";l.textContent=label;
+    const ul=document.createElement("ul");
+    arr.forEach(it=>{
+      const n=withWhy?it[0]:it,li=document.createElement("li");
+      li.innerHTML='<span class="c"></span><span class="d"></span>';
+      li.querySelector(".c").textContent=n;
+      const d2=li.querySelector(".d");
+      d2.textContent=CODES[n]||"";
+      if(withWhy){const w=document.createElement("span");w.className="why";w.textContent=it[1];d2.appendChild(w);}
+      ul.appendChild(li);
+    });
+    d.appendChild(l);d.appendChild(ul);body.appendChild(d);
+  }
+  if(c.primary&&c.primary.length) set("Incident code",c.primary,"primary");
+  else {
+    const g=document.createElement("p");g.className="nogap";
+    g.textContent="No incident code on the current sheet fits this one.";
+    body.appendChild(g);
+  }
+  set("Also likely during the response",c.also);
+  set("Do not use here",c.wrong,"avoid",true);
+  if(c.note){const n=document.createElement("p");n.className="cnote";n.textContent=c.note;body.appendChild(n);}
+}
+
+function renderTerms(){
+  const panel=$("termpanel"),list=$("termlist");
+  if(mode!=="coached"||gi>=GATES.length){panel.hidden=true;return;}
+  const keys=(sel.g[GATES[gi].k].terms)||[];
+  if(!keys.length){panel.hidden=true;return;}
+  panel.hidden=false;list.innerHTML="";
+  keys.forEach(key=>{
+    const g=GLOSS[key];if(!g)return;
+    const li=document.createElement("li");
+    li.innerHTML='<span class="tm"></span><p class="md"></p><p class="ex"></p>';
+    li.querySelector(".tm").textContent=g[0];
+    li.querySelector(".md").textContent=g[1];
+    li.querySelector(".ex").textContent='“'+g[2]+'”';
+    list.appendChild(li);
+  });
+}
+
+function buildAsk(g){
+  const spec=sel.g[g.k];
+  const wrap=document.createElement("div");wrap.className="ask";
+  const q=document.createElement("p");q.className="q";q.textContent=spec.q;
+  const ta=document.createElement("textarea");ta.className="resp";ta.rows=3;
+  ta.placeholder="Type the response, or click from the phrase bank. Enter to submit, shift+enter for a new line.";
+  wrap.appendChild(q);wrap.appendChild(ta);
+
+  if(g.k==="detect"){
+    const onset=parseTs($("onset").value);
+    if(onset>0&&elapsed()<onset){
+      const lm=document.createElement("p");lm.className="lockmsg";
+      lm.textContent="The event is not visible yet. Gate 1 opens at "+fmt(onset)+".";
+      wrap.insertBefore(lm,ta);
+      ta.disabled=true;
+      $("clock").classList.add("locked");
+      gateLock={until:onset,ta:ta,sub:null,msg:lm};
+    }
+  }
+
+  const et=document.createElement("p");et.className="banktitle";et.textContent="Required in your answer";
+  const el=document.createElement("ul");el.className="elem";
+  spec.req.forEach(r=>{const li=document.createElement("li");li.textContent=r[0];el.appendChild(li);});
+  wrap.appendChild(et);wrap.appendChild(el);
+
+  let bank=null;
+  const bankItems=chipBank(g.k,spec);
+  if(mode==="coached"&&bankItems.length){
+    const bt=document.createElement("p");bt.className="banktitle";
+    bt.textContent="Phrase bank — click to insert. Not everything here belongs in the answer.";
+    bank=document.createElement("ul");bank.className="bank";
+    bankItems.forEach(txt=>{
+      const li=document.createElement("li"),b=document.createElement("button");
+      b.type="button";b.textContent=txt;
+      b.addEventListener("click",()=>{
+        const cur=ta.value,sep=(!cur||/\s$/.test(cur))?"":" ";
+        ta.value=cur+sep+txt;
+        b.classList.add("used");
+        ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+        paintElems(norm(ta.value));
+      });
+      li.appendChild(b);bank.appendChild(li);
+    });
+    wrap.appendChild(bt);wrap.appendChild(bank);
+  }
+
+  const btns=document.createElement("div");btns.className="askbtns";
+  const sub=document.createElement("button");sub.type="button";sub.className="submit";sub.textContent="Submit response";
+  if(gateLock&&gateLock.ta===ta){sub.disabled=true;gateLock.sub=sub;}
+  const clr=document.createElement("button");clr.type="button";clr.className="clr";clr.textContent="Clear";
+  btns.appendChild(sub);btns.appendChild(clr);
+  const fb=document.createElement("p");fb.className="fb";
+
+  function paintElems(text){spec.req.forEach((r,i)=>{el.children[i].classList.toggle("got",!!matched(text,r.slice(1)));});}
+
+  function trySubmit(){
+    if(ta.disabled)return;
+    const raw=ta.value.trim();if(!raw)return;
+    const text=norm(raw);
+    attempts[g.k]=(attempts[g.k]||0)+1;
+    $("m-att").textContent=attempts[g.k];
+
+    const watch=bannedFor(g.k).concat((spec.no||[]).map(n=>({label:n[0],crit:!!n[1],terms:n.slice(2)})));
+    const negText=negScrub(text),wordText=codeScrub(negText);
+    watch.forEach(w=>{
+      const m=matched(w.universal?wordText:negText,w.terms);
+      if(m&&!flags.some(f=>f.gate===g.t&&f.label===w.label))
+        flags.push({gate:g.t,label:w.label,crit:w.crit,term:m,dismissed:false});
+    });
+
+    const missing=spec.req.filter(r=>!matched(text,r.slice(1)));
+    paintElems(text);
+    if(!missing.length){
+      marks[g.k]=Math.round(elapsed()*10)/10;
+      answers[g.k]=raw;
+      gi++;render();
+      if(gi>=GATES.length){cancelAnimationFrame(raf);$("finish").hidden=false;$("clock").textContent=fmt(marks.report);}
+      return;
+    }
+    const got=spec.req.length-missing.length;
+    fb.className="fb "+(got?"part":"bad");
+    fb.textContent=attempts[g.k]>=2
+      ? got+" of "+spec.req.length+" required elements present. Still missing: "+missing.map(m=>m[0]).join(", ")+". The clock is running."
+      : got+" of "+spec.req.length+" required elements present. Not enough to move on. The clock is running.";
+    if(attempts[g.k]>=4&&!btns.querySelector(".skip")){
+      const sk=document.createElement("button");sk.type="button";sk.className="ghost skip";
+      sk.textContent="Record as a miss and continue";
+      sk.addEventListener("click",()=>{
+        marks[g.k]=Math.round(elapsed()*10)/10;answers[g.k]=raw;
+        flags.push({gate:g.t,label:"Could not produce a complete response. Missing: "+missing.map(m=>m[0]).join(", "),crit:true,term:"recorded as a miss",dismissed:false});
+        gi++;render();
+        if(gi>=GATES.length){cancelAnimationFrame(raf);$("finish").hidden=false;}
+      });
+      btns.appendChild(sk);
+    }
+    ta.focus();
+  }
+  sub.addEventListener("click",trySubmit);
+  clr.addEventListener("click",()=>{
+    ta.value="";paintElems(norm(""));fb.textContent="";fb.className="fb";
+    if(bank)bank.querySelectorAll("button").forEach(b=>b.classList.remove("used"));
+    ta.focus();
+  });
+  ta.addEventListener("input",()=>paintElems(norm(ta.value)));
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();trySubmit();}});
+  wrap.appendChild(btns);wrap.appendChild(fb);
+  return wrap;
+}
+$("a-toggle").addEventListener("click",()=>{
+  const box=$("a-answers"),nowHidden=!box.hidden;
+  box.hidden=nowHidden;
+  $("a-toggle").textContent=nowHidden?"Show answers":"Hide answers";
+  if(!nowHidden&&mode==="cert"&&!helpUsed){helpUsed=true;$("a-aided").hidden=false;}
+});
+$("abort").addEventListener("click",()=>{cancelAnimationFrame(raf);gateLock=null;show("setup");});
+
+/* ================= scoring ================= */
+$("finish").addEventListener("click",score);
+function score(){
+  cancelAnimationFrame(raf);gateLock=null;
+  const onset=parseTs($("onset").value);
+  const rows=[];let gatesOk=0,rejected=0;
+  GATES.forEach((g,i)=>{
+    const m=marks[g.k],base=baseFor(i),b=benchFor(g.k);
+    const d=(m!=null&&base!=null)?m-base:null;
+    const a=attempts[g.k]||0;rejected+=Math.max(0,a-1);
+    const ok=(d==null||d<0)?null:d<=b;if(ok)gatesOk++;
+    rows.push({gate:g.t,mark:m,delta:d,bench:b,att:a,ok:ok});
+  });
+  const resp=marks.relay!=null?marks.relay-onset:null;
+  const total=marks.report!=null?marks.report-onset:null;
+  badOnset=rows.some(r=>r.delta!=null&&r.delta<0);
+
+  $("h-resp").textContent=fmtShort(resp);
+  $("h-total").textContent=fmtShort(total);
+  $("h-gates").textContent=gatesOk+"/6";
+  $("h-gates-l").textContent="Gates inside benchmark at "+LEVELS[levelIdx].name;
+  $("h-att").textContent=rejected;
+
+  const gb=$("gtable").querySelector("tbody");gb.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td></td><td class="r num"></td><td class="r num"></td><td class="r num"></td><td class="r num"></td><td></td>';
+    const c=tr.children;
+    c[0].textContent=r.gate;
+    c[1].textContent=r.mark!=null?fmt(r.mark):"—";
+    c[2].textContent=r.delta!=null?r.delta.toFixed(1)+"s":"—";
+    c[3].textContent=r.bench+"s";
+    c[4].textContent=r.att;
+    c[5].textContent=r.ok===null?"—":r.ok?"Inside":"Over";
+    c[5].className=r.ok===null?"":r.ok?"d-ok":"d-over";
+    gb.appendChild(tr);
+  });
+
+  const fb=$("ftable").querySelector("tbody");fb.innerHTML="";
+  $("flagwrap").hidden=!flags.length;
+  $("flagnote").textContent=flags.length
+    ? "Language the console caught in submitted answers, including attempts the operator later corrected. Dismiss anything that reads as a false positive and the verdict recalculates."
+    : "Nothing flagged. No intent language, character conclusions or legal conclusions appeared in any attempt.";
+  flags.forEach((f,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td></td><td class="wrap"></td><td class="num"></td><td></td><td></td>';
+    const c=tr.children;
+    c[0].textContent=f.gate;c[1].textContent=f.label;c[2].textContent=f.term;
+    c[3].textContent=f.crit?"Critical":"Noted";c[3].className=f.crit?"d-over":"";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=f.dismissed;
+    cb.addEventListener("change",()=>{flags[i].dismissed=cb.checked;verdict(rows,gatesOk,rejected,resp,total);});
+    c[4].appendChild(cb);fb.appendChild(tr);
+  });
+
+  obsState=(sel.obs||[]).map(()=>false);
+  const ob=$("obschecks");ob.innerHTML="";
+  (sel.obs||[]).forEach((o,i)=>{
+    const li=document.createElement("li"),lab=document.createElement("label"),inp=document.createElement("input");
+    inp.type="checkbox";
+    inp.addEventListener("change",()=>{obsState[i]=inp.checked;verdict(rows,gatesOk,rejected,resp,total);});
+    const sp=document.createElement("span");sp.textContent=o.t;
+    if(o.crit){const w=document.createElement("span");w.className="crit";w.textContent="Critical. A miss here fails the run.";sp.appendChild(w);}
+    lab.appendChild(inp);lab.appendChild(sp);li.appendChild(lab);ob.appendChild(li);
+  });
+
+  renderKey(rows);
+
+  verdict(rows,gatesOk,rejected,resp,total);
+  show("score");
+}
+
+/* The answer key. Gate by gate: what the operator wrote, a model answer in
+   report language, what the gate required, and anything flagged on it. This is
+   the part that turns a failed run into coaching instead of a verdict. */
+function renderKey(rows){
+  const host=$("keylist");host.innerHTML="";
+  const problems=rows.filter(r=>r.ok===false).length+flags.filter(f=>!f.dismissed).length;
+  $("keynote").textContent=problems
+    ? "Compare each answer against the model. The model is one correct answer, not the only wording that passes, but it carries every element the gate requires in the language the report standard expects."
+    : "Nothing went wrong on this run. The models are here anyway, so the operator can see the house phrasing beside their own.";
+  GATES.forEach((g,i)=>{
+    const spec=sel.g[g.k],r=rows[i];
+    const gf=flags.filter(f=>f.gate===g.t&&!f.dismissed);
+    const card=document.createElement("div");
+    card.className="keycard "+((r.ok===false||gf.length)?"over":r.ok?"clean":"");
+
+    const head=document.createElement("div");head.className="keyhead";
+    const h=document.createElement("h4");h.textContent=(i+1)+". "+g.t;
+    head.appendChild(h);
+    const bits=[];
+    if(r.delta!=null&&r.delta>=0) bits.push([r.delta.toFixed(1)+"s of "+r.bench+"s",r.ok?"b-ok":"b-over"]);
+    if(r.att>1) bits.push([(r.att-1)+" rejected",""]);
+    if(gf.length) bits.push([gf.length+" flagged","b-over"]);
+    bits.forEach(([t,c])=>{const sp=document.createElement("span");sp.className="badge "+c;sp.textContent=t;head.appendChild(sp);});
+    card.appendChild(head);
+
+    function row(lbl,text,cls){
+      const d=document.createElement("div");d.className="keyrow";
+      const l=document.createElement("p");l.className="lbl";l.textContent=lbl;
+      const v=document.createElement("p");v.className="val "+(cls||"");v.textContent=text;
+      d.appendChild(l);d.appendChild(v);card.appendChild(d);return d;
+    }
+    row("What was written",answers[g.k]||"nothing recorded","mine");
+    row("A model answer",spec.model,"model");
+
+    const req=document.createElement("div");req.className="keyrow";
+    const rl=document.createElement("p");rl.className="lbl";rl.textContent="Required in the answer";
+    const ul=document.createElement("ul");
+    spec.req.forEach(x=>{const li=document.createElement("li");li.textContent=x[0];ul.appendChild(li);});
+    req.appendChild(rl);req.appendChild(ul);card.appendChild(req);
+
+    if(gf.length){
+      const fd=document.createElement("div");fd.className="keyrow";
+      const fl=document.createElement("p");fl.className="lbl";fl.textContent="Flagged on this gate";
+      const ful=document.createElement("ul");
+      gf.forEach(f=>{const li=document.createElement("li");li.className="fl";li.textContent=f.label+" \u2014 \u201c"+f.term+"\u201d";ful.appendChild(li);});
+      fd.appendChild(fl);fd.appendChild(ful);card.appendChild(fd);
+    }
+    host.appendChild(card);
+  });
+}
+
+function verdict(rows,gatesOk,rejected,resp,total){
+  const live=flags.filter(f=>!f.dismissed);
+  const crit=live.filter(f=>f.crit);
+  const obsMiss=(sel.obs||[]).filter((o,i)=>o.crit&&!obsState[i]);
+  const over=rows.filter(r=>r.ok===false).length;
+  let result,why;
+  if(badOnset){
+    result="Incomplete";
+    why="One or more gates were stamped before the event onset timestamp, so this run cannot be scored end to end. That almost always means the onset value was set wrong, or the clock was started after the clip. Fix the onset and re-run. It still counts as coaching.";
+  } else if(crit.length){
+    result="Not certified";
+    why="Critical failure: "+crit.map(f=>f.label.toLowerCase()).join("; ")+". It counts even where the operator corrected it on a later attempt, because the first instinct is the one that fires under real pressure. Remediate that specific failure and re-run this scenario.";
+  } else if(obsMiss.length){
+    result="Not certified";
+    why="A critical observed item was missed: "+obsMiss.map(o=>o.t.toLowerCase()).join("; ")+". Nothing in the written answers catches this, which is why the proctor still has to watch.";
+  } else if(over||rejected>2||live.length){
+    const bits=[];
+    if(over)bits.push(over+" gate"+(over>1?"s":"")+" over benchmark at "+LEVELS[levelIdx].name);
+    if(rejected>2)bits.push(rejected+" rejected attempts");
+    if(live.length)bits.push(live.length+" noted flag"+(live.length>1?"s":""));
+    result="Remediate";
+    why="Nothing disqualifying, but "+bits.join(", ")+". Coach the specific gap and re-run inside two weeks."
+      +(mode==="coached"?" This was a coached run with the phrase bank visible, so certify on an unaided run before signing anyone off.":"")
+      +(helpUsed?" The answer panel was also opened during the run.":"");
+  } else if(mode==="coached"){
+    result="Remediate";
+    why="Clean run, but the phrase bank and term panel were visible the whole way. Re-run this scenario in certification mode before signing anyone off.";
+  } else if(helpUsed){
+    result="Remediate";
+    why="Clean run on the clock, but the answer panel was opened during it, which hands over the tier and the first call. Re-run this scenario unaided before signing anyone off.";
+  } else {
+    result="Certified";
+    why="Every gate inside benchmark at "+LEVELS[levelIdx].name+", no flagged language, observed items met, written unaided. Sign it, date it, file it."
+      +(levelIdx<LEVELS.length-1?" Save it and the next run steps up toward "+LEVELS[levelIdx+1].name+".":" Top band held.");
+  }
+  const v=$("verdict");
+  v.className="verdict "+(result==="Certified"?"v-pass":result==="Not certified"?"v-fail":"v-rem");
+  $("v-title").textContent=result;$("v-why").textContent=why;
+
+  lastRun={
+    date:new Date().toISOString(),
+    operator:$("op").value.trim()||"unnamed",
+    site:$("site").value.trim()||"unspecified",
+    clip:$("clip").value.trim()||"",
+    scenarioId:sel.id,scenario:sel.name,cls:sel.cls,
+    mode:mode,level:LEVELS[levelIdx].id,levelName:LEVELS[levelIdx].name,levelMult:levelMult,aided:helpUsed,
+    onset:parseTs($("onset").value),allowance:allowance,
+    marks:Object.assign({},marks),attempts:Object.assign({},attempts),
+    answers:Object.assign({},answers),
+    flags:live.map(f=>({gate:f.gate,label:f.label,term:f.term,crit:f.crit})),
+    response:resp,total:total,gatesOk:gatesOk,rejected:rejected,result:result
+  };
+  const b=$("savebtn");b.disabled=false;b.textContent="Save to the run log";
+}
+
+$("printbtn").addEventListener("click",()=>window.print());
+$("again").addEventListener("click",()=>{show("setup");});
+
+/* ================= storage ================= */
+function localRuns(){try{return JSON.parse(localStorage.getItem("gsoc-drill-runs")||"[]")}catch(e){return []}}
+function saveLocal(r){try{const a=localRuns();a.push(Object.assign({_id:"l"+Date.now().toString(36)+Math.random().toString(36).slice(2,8)},r));localStorage.setItem("gsoc-drill-runs",JSON.stringify(a))}catch(e){}}
+function dropLocal(ids){try{const keep=localRuns().filter(r=>ids.indexOf(r._id)<0);localStorage.setItem("gsoc-drill-runs",JSON.stringify(keep))}catch(e){}}
+
+/* Removing runs. Practice data has to come off before certification runs start,
+   or the handling-time distribution is measuring the wrong thing. Deletes are
+   shared and permanent, so both paths confirm first. */
+async function removeRuns(ids){
+  if(store&&canWrite){
+    const live=ids.filter(id=>id&&id.charAt(0)!=="l");
+    try{ await Promise.all(live.map(id=>store.collection("runs").doc(id).delete())); }
+    catch(e){ return false; }
+  }
+  dropLocal(ids);
+  if(!store){ runs=localRuns(); }
+  else { runs=runs.filter(r=>ids.indexOf(r._id)<0); }
+  renderLog();
+  return true;
+}
+
+(async function(){
+  try{
+    const db=await claude.use("db");
+    if(db){
+      store=db;
+      try{const u=await claude.use("user");if(u){const w=await u.can("data.write");if(w===false)canWrite=false;}}catch(e){}
+      store.collection("runs").orderBy("date","desc").limit(300).onSnapshot(
+        s=>{runs=s.docs.map(d=>Object.assign({_id:d.id},d.data()));renderLog();},
+        ()=>{runs=localRuns();renderLog();}
+      );
+      $("srcline").textContent=canWrite
+        ?"Runs are shared with everyone who can open this page, so several proctors feed the same dataset."
+        :"You can read the shared log but not add to it. Ask the owner for Contributor access.";
+      return;
+    }
+  }catch(e){}
+  runs=localRuns();renderLog();
+  $("srcline").textContent="Runs are stored on this device only.";
+})();
+
+$("savebtn").addEventListener("click",async()=>{
+  if(!lastRun)return;
+  const b=$("savebtn");b.disabled=true;b.textContent="Saving…";
+  if(store&&canWrite){
+    try{await store.collection("runs").add(lastRun);b.textContent="Saved";return;}
+    catch(e){if(e&&e.code==="invalid_argument")canWrite=false;}
+  }
+  saveLocal(lastRun);
+  runs=store?runs.concat([lastRun]):localRuns();
+  renderLog();b.textContent="Saved on this device";
+});
+
+function renderLog(){
+  updateLevel();
+  const list=(runs||[]).slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const tb=$("ltable").querySelector("tbody");tb.innerHTML="";
+  const mayClear=list.length&&(!store||canWrite);
+  $("clearlog").hidden=!mayClear;
+  if(!mayClear){$("clearconfirm").hidden=true;}
+  if(!list.length){$("logwrap").hidden=true;$("agg").hidden=true;$("logempty").hidden=false;return;}
+  $("logwrap").hidden=false;$("agg").hidden=false;$("logempty").hidden=true;
+  list.slice(0,60).forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td class="num"></td><td></td><td></td><td></td><td></td><td class="r num"></td><td class="r num"></td><td class="r num"></td><td></td><td></td>';
+    const c=tr.children;
+    c[0].textContent=(r.date||"").slice(0,10);
+    c[1].textContent=r.operator||"";
+    c[2].textContent=r.levelName||"—";
+    c[3].textContent=r.scenario||"";
+    c[4].textContent=(r.mode==="cert"?"Certification":"Coached")+(r.aided?" (aided)":"");
+    c[5].textContent=fmtShort(r.response);
+    c[6].textContent=fmtShort(r.total);
+    c[7].textContent=r.rejected==null?"—":r.rejected;
+    c[8].textContent=r.result||"";
+    c[8].className=r.result==="Certified"?"d-ok":r.result==="Not certified"?"d-over":"";
+    if(r._id&&(!store||canWrite)){
+      const rm=document.createElement("button");
+      rm.type="button";rm.className="rm";rm.textContent="Remove";
+      rm.title="Delete this run";
+      rm.addEventListener("click",async()=>{
+        if(rm.dataset.armed!=="1"){rm.dataset.armed="1";rm.textContent="Sure?";setTimeout(()=>{if(rm.dataset.armed==="1"){rm.dataset.armed="";rm.textContent="Remove";}},4000);return;}
+        rm.disabled=true;rm.textContent="\u2026";
+        if(!await removeRuns([r._id])){rm.disabled=false;rm.textContent="Failed";}
+      });
+      c[9].appendChild(rm);
+    }
+    tb.appendChild(tr);
+  });
+  /* A Novice is slow because they are new, not because the workflow is slow.
+     The handling-time figures take unaided certification runs at the published
+     standard or tighter, so they describe a trained operator. */
+  const cert=list.filter(r=>r.mode==="cert"&&!r.aided&&(r.level==="expert"||r.level==="elite"));
+  const totals=cert.map(r=>r.total).filter(v=>typeof v==="number"&&!isNaN(v)).sort((a,b)=>a-b);
+  $("g-n").textContent=list.length+(cert.length?" ("+cert.length+" at standard)":"");
+  $("g-med").textContent=totals.length?fmtShort(totals[Math.floor(totals.length*0.5)]):"—";
+  $("g-p90").textContent=totals.length?fmtShort(totals[Math.min(totals.length-1,Math.floor(totals.length*0.9))]):"—";
+  $("g-pass").textContent=pct(list.filter(r=>r.result==="Certified").length,list.length);
+}
+
+function buildCsv(){
+  const head=["date","operator","site","clip","scenario","class","mode","level","level_multiplier","aided","allowance_s","detect_s","classify_s","dial_s","relay_s","escalate_s","report_s","response_s","total_s","gates_inside","rejected_attempts","flags","result"];
+  const esc=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const lines=[head.join(",")];
+  (runs||[]).forEach(r=>{
+    const m=r.marks||{};
+    lines.push([r.date,r.operator,r.site,r.clip,r.scenario,r.cls,r.mode,r.levelName,r.levelMult,r.aided?"yes":"no",r.allowance,m.detect,m.classify,m.dial,m.relay,m.escalate,m.report,r.response,r.total,r.gatesOk,r.rejected,(r.flags||[]).map(f=>f.label).join(" | "),r.result].map(esc).join(","));
+  });
+  return lines.join("\n");
+}
+$("csv").addEventListener("click",async()=>{
+  const csv=buildCsv();
+  try{const d=await claude.use("downloads");if(d){await d.save({filename:"gsoc-drill-runs.csv",data:csv});return;}}catch(e){}
+  const ta=$("csvout");ta.hidden=false;ta.value=csv;ta.select();
+});
+
+$("clearlog").addEventListener("click",()=>{
+  const n=(runs||[]).length;
+  $("clearmsg").textContent="Delete all "+n+" saved run"+(n===1?"":"s")+"? This cannot be undone, and it clears the log for everyone who can open this page. Export the CSV first if you want a copy.";
+  $("clearconfirm").hidden=false;$("clearlog").hidden=true;
+});
+$("clearno").addEventListener("click",()=>{$("clearconfirm").hidden=true;$("clearlog").hidden=false;});
+$("clearyes").addEventListener("click",async()=>{
+  const btn=$("clearyes");btn.disabled=true;btn.textContent="Deleting\u2026";
+  const ok=await removeRuns((runs||[]).map(r=>r._id).filter(Boolean));
+  btn.disabled=false;btn.textContent="Delete them";
+  $("clearconfirm").hidden=true;
+  if(!ok)$("clearmsg").textContent="Could not delete every run. Reload and try again.";
+});
+
+(function(){
+  const sel2=$("theme");
+  let saved=null; try{saved=localStorage.getItem("gsoc-drill-theme");}catch(e){}
+  if(saved&&saved!=="standard"){document.documentElement.setAttribute("data-theme",saved);sel2.value=saved;}
+  sel2.addEventListener("change",()=>{
+    const v=sel2.value;
+    if(v==="standard")document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme",v);
+    try{localStorage.setItem("gsoc-drill-theme",v);}catch(e){}
+  });
+})();
+
+document.addEventListener("keydown",e=>{
+  if(e.code!=="Space")return;
+  const tag=(e.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"||tag==="select")return;
+  if(!$("setup").hidden&&sel){e.preventDefault();startRun();}
+});
+/* The start button sits below a long scenario list, so a run would otherwise
+   open mid-page. Every view change goes back to the top. */
+function show(id){["setup","run","score"].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0);}
+</script>
+</body>
+</html>
+
+</body></html>
